@@ -1,0 +1,1 @@
+obj-y +=  printf.o kernel.o idt.o interrupt.o trap.o

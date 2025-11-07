@@ -1,0 +1,1 @@
+obj-y += mmap.o p_mem.o paging.o
