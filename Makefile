@@ -27,7 +27,7 @@ export TOPDIR
 TARGET := kernel.bin
 
 
-obj-y += arch/ init/ kernel/ mm/
+obj-y += arch/ init/ kernel/ mm/ drivers/
 
 
 all : start_recursive_build $(TARGET)

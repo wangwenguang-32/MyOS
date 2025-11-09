@@ -23,7 +23,9 @@
 #define LAPIC_LVT_LINT0          0x350
 #define LAPIC_LVT_LINT1          0x360
 #define LAPIC_LVT_ERROR          0x370
-
+#define LAPIC_TIMER_INIT_CNT     0x380
+#define LAPIC_TIMER_CUR_CNT      0x390
+#define LAPIC_TIMER_DIV_CFG      0x3E0
 /* IOAPIC indirect regs */
 #define IOAPIC_REGSEL            0x00
 #define IOAPIC_WINDOW            0x10
@@ -36,6 +38,27 @@
 #define PIC1_DAT 0x21
 #define PIC2_CMD 0xA0
 #define PIC2_DAT 0xA1
+
+// 系统核心设备
+#define IRQ_TIMER        0   // 系统定时器（PIT），IRQ0
+#define IRQ_KEYBOARD     1   // 键盘控制器，IRQ1
+#define IRQ_CASCADE      2   // 主从PIC级联中断，IRQ2（通常不直接关联设备）
+#define IRQ_COM2         3   // 串行端口2，IRQ3
+#define IRQ_COM1         4   // 串行端口1，IRQ4
+#define IRQ_LPT2         5   // 并行端口2/声卡，IRQ5
+#define IRQ_FLOPPY       6   // 软盘控制器，IRQ6
+#define IRQ_LPT1         7   // 并行端口1/打印机，IRQ7
+
+// 扩展设备
+#define IRQ_RTC          8   // 实时时钟（RTC），IRQ8
+#define IRQ_REDIRECT_IRQ2 9  // IRQ2重定向（兼容用途），IRQ9
+#define IRQ_USB1         10  // 通用USB控制器1，IRQ10（预留）
+#define IRQ_USB2         11  // 通用USB控制器2/显卡，IRQ11（预留）
+#define IRQ_MOUSE        12  // PS/2鼠标控制器，IRQ12
+#define IRQ_FPU_ERROR    13  // 浮点运算单元错误，IRQ13
+#define IRQ_IDE_PRIMARY  14  // 主IDE硬盘控制器，IRQ14
+#define IRQ_IDE_SECONDARY 15 // 从IDE硬盘控制器，IRQ15
+
 
 /* -------------------- MMIO helpers -------------------- */
 static volatile uint32_t *const lapic_base = (volatile uint32_t *)(uintptr_t)LAPIC_DEFAULT_PHYS;
@@ -73,6 +96,12 @@ extern "C" {
 void _apic_init(uint8_t spurious_vector, uint8_t ext_irq_vector_base);
 /* Send End-Of-Interrupt to LAPIC. Call at end of external IRQ handlers. */
 void lapic_eoi(void);
+
+void lapic_mask_interrupt(uint32_t reg);
+void lapic_unmask_interrupt(uint32_t reg);
+
+void ioapic_mask_interrupt(uint32_t irq);
+void ioapic_unmask_interrupt(uint32_t irq);
 
 #ifdef __cplusplus
 }

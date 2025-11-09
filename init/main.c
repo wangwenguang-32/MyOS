@@ -1,5 +1,7 @@
 #include<printf.h>
 #include<apic.h>
+#include<keyboard.h>
+
 void change_esp()
 {
     asm("addl $0xC0000000,%esp;");
@@ -17,6 +19,6 @@ void main(unsigned long *esp)
     _init_paging();
      _init_idt();
      _apic_init(0xFF,0x20);
-    
+    keyboard_init();
     while(1);
 }

@@ -32,5 +32,5 @@ division_error:
 
 
 keyboard_isr:
-        push  $keyboard
+        push  $keyboard_interrupt_handler
         jmp no_error_code

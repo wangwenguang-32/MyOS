@@ -113,5 +113,32 @@ void lapic_eoi(void) {
     lapic_write(LAPIC_EOI, 0);
 }
 
+void lapic_mask_interrupt(uint32_t reg)
+{
+    uint32_t data=lapic_read(reg);
+    data |= 1u << 16;
+    lapic_write(reg,data);
+}
 
+void lapic_unmask_interrupt(uint32_t reg)
+{
+    uint32_t data=lapic_read(reg);
+    data &= ~((uint32_t)1u << 16);
+    lapic_write(reg,data);
+}
 
+void ioapic_mask_interrupt(uint32_t irq)
+{
+    uint8_t reg = IOAPIC_REG_REDTBL + (uint8_t)(irq * 2);
+    uint32_t data=ioapic_read(reg);
+    data |= 1u << 16;
+    ioapic_write(reg,data);
+}
+
+void ioapic_unmask_interrupt(uint32_t irq)
+{
+    uint8_t reg = IOAPIC_REG_REDTBL + (uint8_t)(irq * 2);
+    uint32_t data=ioapic_read(reg);
+    data &= ~((uint32_t)1u << 16);
+    ioapic_write(reg,data);
+}

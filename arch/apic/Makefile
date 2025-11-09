@@ -1,1 +1,1 @@
-obj-y += apic.o
+obj-y += apic.o apic_timer.o

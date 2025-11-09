@@ -1,1 +1,1 @@
-obj-y +=  boot/ apic/ acpi/
+obj-y +=  boot/ apic/ acpi/ rtc/

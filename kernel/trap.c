@@ -6,6 +6,6 @@ void do_division_error()
 
 void keyboard()
 {
-    printf("bbb\n");
+    printf("bbb");
     lapic_eoi();
 }
