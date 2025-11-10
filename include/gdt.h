@@ -32,6 +32,7 @@
 #define SEG_CODE_EXCA         0x0D
 #define SEG_CODE_EXRDC       0x0E
 #define SEG_CODE_EXRDCA     0x0F
+#define SEG_TSS_AVAIL        0x09 
 
 
 #define SEG_R0_CODE           SD_TYPE(SEG_CODE_EXRD) | SD_CODE_DATA(1) | SD_DPL(0) | \
@@ -45,5 +46,8 @@
 
 #define SEG_R3_DATA            SD_TYPE(SEG_DATA_RDWR) | SD_CODE_DATA(1) | SD_DPL(3) | \
                                              SD_PRESENT(1) | SD_AVL(0) | SD_64BITS(0) | SD_32BITS(1) | SD_4K_GRAN(1)
+
+#define SEG_R0_TSS_AVAIL    SD_TYPE(SEG_TSS_AVAIL) | SD_CODE_DATA(0) | SD_DPL(0) | \
+                                             SD_PRESENT(1) | SD_AVL(0) | SD_64BITS(0) | SD_32BITS(1) | SD_4K_GRAN(0)
 #endif
 

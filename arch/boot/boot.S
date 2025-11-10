@@ -74,10 +74,12 @@ multiboot_entry:
         movw _gdt_limit,%cx
         movw %cx,(%esp)
         lgdt (%esp)
-        
-        
-        
         addl $0x6,%esp
+        
+        movw $0x28,%ax
+        ltr %ax
+
+
         pushl $0x08
         pushl  $_after
         retf
@@ -115,6 +117,8 @@ _after:
         movl %cr0,%eax
         orl $0x80000000,%eax
         movl %eax,%cr0
+
+        
 
 
 
