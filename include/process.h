@@ -6,7 +6,7 @@
 #include <page.h>
 
 #define move_to_user_mode() \
-__asm__ ("movl %%esp,%%eax\n\t" \
+__asm__ ("movl $0xC0000000,%%eax\n\t" \
 	"pushl $0x23\n\t" \
 	"pushl %%eax\n\t" \
 	"pushfl\n\t" \

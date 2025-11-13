@@ -8,5 +8,4 @@ task0_start:
 		movw %ax,%es
 		movw %ax,%fs
 		movw %ax,%gs
-		call print_hello1
-        jmp task0_start
+ loop:    jmp loop

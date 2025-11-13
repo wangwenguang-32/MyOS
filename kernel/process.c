@@ -30,13 +30,14 @@ task_t* init_task0 __attribute__((section(".data"))) ;
 void _init_task0()
 {
     uint32_t addr =(uint32_t)alloc_page();
+    uint32_t stack_addr=(uint32_t)alloc_page();
     tss_globel.esp0=addr+0x1000;
     tss_globel.ss0=0x10;
 
     init_task0=(task_t*)addr;
 
     uint32_t task0_start=  sym_val(task0_phys_start);
-    printf("%x\n",task0_start);
     map_virtual_to_physical(0x8048000u,task0_start,0x07);
+    map_virtual_to_physical(0xC0000000-0x1000,stack_addr,0x07u);
     current=&init_task;
 }

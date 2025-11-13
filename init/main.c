@@ -17,11 +17,9 @@ void main(unsigned long *esp)
     _init_idt();
     _init_mm();
     _init_paging();
-    
     _apic_init(0xFF,0x20);
     _keyboard_init();
     _init_task0();
-    printf("world\n");
     move_to_user_mode();
     while(1);
 }
