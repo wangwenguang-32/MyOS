@@ -11,22 +11,9 @@ __asm__ ("movl %%esp,%%eax\n\t" \
 	"pushl %%eax\n\t" \
 	"pushfl\n\t" \
 	"pushl $0x1B\n\t" \
-	"pushl $1f\n\t" \
+	"pushl $0x8048000\n\t" \
 	"iret\n" \
-	"1:\tmovl $0x23,%%eax\n\t" \
-	"movw %%ax,%%ds\n\t" \
-	"movw %%ax,%%es\n\t" \
-	"movw %%ax,%%fs\n\t" \
-	"movw %%ax,%%gs" \
 	:::"ax")
-
-
-
-/* 简单双向链表节点（侵入式） */
-typedef struct list_node {
-	struct list_node *prev;
-	struct list_node *next;
-} list_node_t;
 
 /* 任务状态 */
 typedef enum {
@@ -141,7 +128,6 @@ typedef struct task_struct {
 	uint64_t       vruntime;          /* CFS 类算法的虚拟运行时间占位 */
 	uint64_t       deadline_ns;       /* 软实时/EDF 占位 */
 
-	/* 运行队列/各种链表挂接点 */
 	list_node_t    run_node;          /* 运行队列节点 */
 	list_node_t    all_tasks_node;    /* 全局任务链表节点 */
 	list_node_t    sibling_node;      /* 子进程链表节点 */
@@ -178,5 +164,10 @@ typedef struct task_struct {
 
 
 task_t* current;
+
+extern struct  list_head ready_task_head;
+extern struct  list_head all_task_head;
+extern struct list_head wait_task_head;
+
 
 #endif

@@ -1,6 +1,7 @@
 .text
 .global division_error
 .global keyboard_isr
+.global GP
 no_error_code:
         xchgl %eax,(%esp)
         pushl %ebx
@@ -34,3 +35,6 @@ division_error:
 keyboard_isr:
         push  $keyboard_interrupt_handler
         jmp no_error_code
+
+GP:
+        jmp GP

@@ -129,7 +129,7 @@ _after:
 loop:   hlt
         jmp     loop
         /*  Our stack area. */
-.section .boot.bss
+.section .boot.data
         .align 16
 stack:
         .skip 0x4000, 0
@@ -138,6 +138,7 @@ page_directory_base:
         .skip 4096,0
 
 page_table_base:
+        .skip 4096,0
         .skip 4096,0
         .skip 4096,0
 

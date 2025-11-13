@@ -121,6 +121,7 @@ static void keyboard_send_command(uint8_t cmd) {
     outb(KEYBOARD_COMMAND_PORT, cmd);
 }
 
+
 /* Send data to keyboard */
 static void keyboard_send_data(uint8_t data) {
     keyboard_wait();

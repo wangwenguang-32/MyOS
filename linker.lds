@@ -1,35 +1,29 @@
 SECTIONS {
-    . =0x100000;
+    . = 0x100000;
     _boot_start = .;
-    .boot.text  : {
-        *(.boot.text)
-    }
-    .boot.bss : {
-        *(.boot.bss)
-    }
-    .boot.data : {
-        *(.boot.data)
-    }
+    .boot.text  : { *(.boot.text) }
+    .boot.bss   : { *(.boot.bss) }
+    .boot.data  : { *(.boot.data) }
     _boot_end = . ;
-    . += 0xC0000000;
-    _kernel_start =  . ;
-    .text BLOCK(4K) : AT(ADDR(.text)-0xC0000000){
+
+    . = ALIGN(4096);                 
+    task0_phys_start = .;             
+    . = 0x8048000;                    
+    .task0.text : AT(task0_phys_start) {  
+        *(.task0.text)
+    }
+    task0_phys_end = task0_phys_start + SIZEOF(.task0.text);  
+
+    . = task0_phys_end;               
+    . += 0xC0000000;                  
+    _kernel_start = . ;
+
+    .text BLOCK(4K) : AT(ADDR(.text) - 0xC0000000) {  
         *(.text)
     }
-    .rodata : {
-        *(.rodata)
-    }
-    .data : {
-        *(.data)
-    }
-    .bss : {
-        *(.bss)
-    }
-
-    .bss.mem_page : {
-        *(.bss.mem_page)
-    }
-
-    _kernel_end =  . ;
-
+    .rodata : { *(.rodata) }
+    .data : { *(.data) }
+    .data.mem_page : { *(.data.mem_page) }
+    .bss : { *(.bss) }
+    _kernel_end = . ;
 }

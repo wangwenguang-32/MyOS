@@ -27,5 +27,6 @@
 
 void division_error();
 void keyboard_isr();
+void GP();
 
 #endif

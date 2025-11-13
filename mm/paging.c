@@ -6,7 +6,7 @@
 
 extern uint32_t page_directory_base[];
 
-page_directory_t  pdt;
+page_directory_t  pdt __attribute__((section(".data")));
 
 // 从虚拟地址解析出各部分
 void parse_virtual_address(uint32_t virtual_addr, virtual_addr_t *va) {
@@ -32,9 +32,9 @@ int map_virtual_to_physical(uint32_t virtual_addr,
         
         // 分配页表的物理地址（简化处理）
         uint32_t page_table_phys = alloc_page();
-        
         // 设置页目录项：指向页表
-        pdt.entries[va.page_dir_index] =  page_table_phys | PAGE_PRESENT | PAGE_WRITE | PAGE_USER;
+        pdt.entries[va.page_dir_index] =  page_table_phys | flags;
+        pdt.page_tables[va.page_dir_index]=page_table_phys;
     }
     
     // 检查页表索引是否有效
@@ -44,7 +44,7 @@ int map_virtual_to_physical(uint32_t virtual_addr,
     
     // 设置页表项：指向物理页
     page_table_t *pt = (page_table_t *)pdt.page_tables[va.page_dir_index];
-    pt->entries[va.page_table_index] = physical_addr | flags | PAGE_PRESENT;
+    pt->entries[va.page_table_index] = physical_addr | flags;
     
     
     return 0;
@@ -121,6 +121,6 @@ int unmap_virtual_address(uint32_t virtual_addr) {
 void _init_paging()
 {
     pdt.entries=(page_entry_t*)((uint32_t)page_directory_base+0xC0000000);
-    map_virtual_to_physical(0xFEE00000u,0xFEE00000u,6u);
-    map_virtual_to_physical(0xFEC00000u,0xFEC00000u,6u);
+    map_virtual_to_physical(0xFEE00000u,0xFEE00000u,3u);
+    map_virtual_to_physical(0xFEC00000u,0xFEC00000u,3u);
 }

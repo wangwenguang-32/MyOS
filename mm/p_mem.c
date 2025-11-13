@@ -15,7 +15,7 @@ unsigned long boot_kernel_end = sym_val(_boot_end);
 unsigned long kernel_start = pa(sym_val(_kernel_start));
 unsigned long kernel_end = pa(sym_val(_kernel_end));
 
-unsigned char mem_page[2*1024*1024] __attribute__((section(".bss.mem_page")));
+unsigned char mem_page[2*1024*1024] __attribute__((section(".data.mem_page")));
 
 #define USABLE    1
 #define UNUSABLE  0
