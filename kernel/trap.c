@@ -10,6 +10,7 @@ void do_division_error()
 void do_general_protection(uint32_t error_code)
 {
     printf("general_protection:%d\n",error_code);
+    while(1);
 }
 
 void do_page_fault(uint32_t error_code)

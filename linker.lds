@@ -14,16 +14,17 @@ SECTIONS {
     }
     task0_phys_end = task0_phys_start + SIZEOF(.task0.text);  
 
-    . = task0_phys_end;               
+    . = task0_phys_end;    
+    . = ALIGN(4096);           
     . += 0xC0000000;                  
-    _kernel_start = . ;
+     _kernel_start = . ;
 
     .text BLOCK(4K) : AT(ADDR(.text) - 0xC0000000) {  
         *(.text)
     }
     .rodata : { *(.rodata) }
     .data : { *(.data) }
-    .data.mem_page : { *(.data.mem_page) }
     .bss : { *(.bss) }
+    . = ALIGN(4096);
     _kernel_end = . ;
 }

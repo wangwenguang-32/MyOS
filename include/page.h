@@ -24,8 +24,7 @@ typedef struct {
 
 // 页目录结构
 typedef struct {
-    page_entry_t* entries;
-    uint32_t page_tables[PAGE_DIR_ENTRIES];
+    page_entry_t entries[PAGE_TABLE_ENTRIES];
 } page_directory_t;
 
 // 虚拟地址结构
@@ -35,7 +34,7 @@ typedef struct {
     uint32_t offset : 12;           // 页内偏移 (12位)
 } virtual_addr_t;
 
-extern page_directory_t  pdt;
+extern page_directory_t*  pdt;
 
 
 #endif

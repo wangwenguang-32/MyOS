@@ -44,11 +44,10 @@ enum task_flags {
 	TASK_FLAG_FPU_USED      = 1u << 4,
 };
 
-typedef struct cpu_context {
-	uint32_t eflags;
+typedef struct kernel_stack {
 	uint32_t esp0;
 	uint16_t ss0;
-} cpu_context_t;
+} kernel_stack_t;
 
 
 /* 亲和性 */
@@ -136,10 +135,9 @@ typedef struct task_struct {
 	/* 亲和性与负载均衡 */
 	cpu_affinity_t affinity;
 	uint8_t        on_cpu;            /* 正在哪个 CPU 上运行（逻辑 ID） */
-	uint8_t        last_cpu;          /* 上次运行的 CPU */
 
-	/* 上下文/栈 */
-	cpu_context_t  ctx;               /* 进出调度器保存/恢复 */
+	/* 栈 */
+	kernel_stack_t  ks;               /* 进出调度器保存/恢复 */
 
 	/* 地址空间/内存管理 */
 	//struct mm_struct *mm;             /* 进程地址空间（线程共享） */

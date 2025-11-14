@@ -12,7 +12,6 @@ void main(unsigned long *esp)
 {
     change_esp();
     cls();
-    
     cmain(*(esp-2),*(esp-1));
     _init_idt();
     _init_mm();
@@ -20,6 +19,7 @@ void main(unsigned long *esp)
     _apic_init(0xFF,0x20);
     _keyboard_init();
     _init_task0();
+    printf("Hello,World\n");
     move_to_user_mode();
     while(1);
 }

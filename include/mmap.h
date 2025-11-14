@@ -10,7 +10,7 @@
 
 #define MAX_MAP_NUM   10
 
-struct memory_map
+struct memory_map   //memory_region
 {
     unsigned long base_addr;
     unsigned long length;

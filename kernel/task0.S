@@ -1,5 +1,6 @@
 #define ASSEMBLY
 #include <task0.h>
+#include <section.h>
 
 TASK0_TEXT
 task0_start:
