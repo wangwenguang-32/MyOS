@@ -29,5 +29,6 @@ void division_error();
 void keyboard_isr();
 void page_fault();
 void general_protection();
+void system_call();
 
 #endif

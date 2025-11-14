@@ -9,4 +9,6 @@ task0_start:
 		movw %ax,%es
 		movw %ax,%fs
 		movw %ax,%gs
+		movl $2,%eax
+		int $0x80
  loop:    jmp loop
