@@ -236,8 +236,7 @@ static inline void list_splice_tail_init(struct list_head *list,
 
 
 #define list_entry(ptr, type, member)  ({\
-	(typeof((type*)0->member))*p=(ptr) \
-    (type*)((char*)p-((char*)&(((type*)0)->member))) \
+    (type*)((char*)ptr-((char*)&(((type*)0)->member))) ;\
 })
 
 #define list_first_entry(ptr, type, member) \

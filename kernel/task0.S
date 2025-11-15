@@ -11,4 +11,10 @@ task0_start:
 		movw %ax,%gs
 		movl $2,%eax
 		int $0x80
- loop:    jmp loop
+		cmpl $0,%eax
+		je zi
+loop1:	
+     jmp  loop1
+zi:
+loop2:		
+     jmp loop2

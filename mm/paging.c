@@ -7,7 +7,7 @@
 
 extern uint32_t page_directory_base[];
 
-page_directory_t*  pdt DATA;
+page_directory_t*  _pdt DATA;
 
 // 从虚拟地址解析出各部分
 void parse_virtual_address(uint32_t virtual_addr, virtual_addr_t *va) {
@@ -18,7 +18,7 @@ void parse_virtual_address(uint32_t virtual_addr, virtual_addr_t *va) {
 
 
 // 将虚拟地址映射到物理地址
-int map_virtual_to_physical(uint32_t virtual_addr, 
+int map_virtual_to_physical(page_directory_t*pdt, uint32_t virtual_addr, 
                             uint32_t physical_addr, uint32_t flags) {
     virtual_addr_t va;
     parse_virtual_address(virtual_addr, &va);
@@ -45,7 +45,7 @@ int map_virtual_to_physical(uint32_t virtual_addr,
 }
 
 // 查找虚拟地址对应的物理地址
-int translate_virtual_to_physical(uint32_t virtual_addr, 
+int translate_virtual_to_physical(page_directory_t*pdt,uint32_t virtual_addr, 
                                   uint32_t *physical_addr) {
     virtual_addr_t va;
     parse_virtual_address(virtual_addr, &va);
@@ -82,7 +82,7 @@ int translate_virtual_to_physical(uint32_t virtual_addr,
 }
 
 // 取消虚拟地址映射
-int unmap_virtual_address(uint32_t virtual_addr) {
+int unmap_virtual_address(page_directory_t*pdt,uint32_t virtual_addr) {
     virtual_addr_t va;
     parse_virtual_address(virtual_addr, &va);
     
@@ -106,7 +106,7 @@ int unmap_virtual_address(uint32_t virtual_addr) {
 
 void _init_paging()
 {
-    pdt=(page_directory_t*)((uint32_t)page_directory_base+0xC0000000);
-    map_virtual_to_physical(0xFEE00000u,0xFEE00000u,3u);
-    map_virtual_to_physical(0xFEC00000u,0xFEC00000u,3u);
+    _pdt=(page_directory_t*)((uint32_t)page_directory_base+0xC0000000);
+    map_virtual_to_physical(_pdt,0xFEE00000u,0xFEE00000u,3u);
+    map_virtual_to_physical(_pdt,0xFEC00000u,0xFEC00000u,3u);
 }

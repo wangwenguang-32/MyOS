@@ -1,4 +1,4 @@
-.global system_call
+.global system_call , sys_fork
 system_call:
         pushl $0
         pushl %ebx
@@ -26,3 +26,12 @@ system_call:
         popl %ebx
         addl $4,%esp
         iret
+
+
+sys_fork:
+        movl %esp,%eax
+        addl $16,%eax
+        pushl %eax
+        call do_fork
+        addl $4,%esp
+        ret

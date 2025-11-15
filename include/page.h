@@ -34,7 +34,10 @@ typedef struct {
     uint32_t offset : 12;           // 页内偏移 (12位)
 } virtual_addr_t;
 
-extern page_directory_t*  pdt;
+extern page_directory_t*  _pdt;
 
+extern int map_virtual_to_physical(page_directory_t*pdt, uint32_t virtual_addr, uint32_t physical_addr, uint32_t flags) ;
+extern int translate_virtual_to_physical(page_directory_t*pdt,uint32_t virtual_addr, uint32_t *physical_addr) ;
+extern int unmap_virtual_address(page_directory_t*pdt,uint32_t virtual_addr) ;
 
 #endif

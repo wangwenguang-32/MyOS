@@ -127,7 +127,7 @@ typedef struct task_struct {
 	uint64_t       vruntime;          /* CFS 类算法的虚拟运行时间占位 */
 	uint64_t       deadline_ns;       /* 软实时/EDF 占位 */
 
-	list_node_t    run_node;          /* 运行队列节点 */
+	list_node_t    ready_node;          /* 运行队列节点 */
 	list_node_t    all_tasks_node;    /* 全局任务链表节点 */
 	list_node_t    sibling_node;      /* 子进程链表节点 */
 	list_node_t    wait_node;         /* 等待队列节点 */
