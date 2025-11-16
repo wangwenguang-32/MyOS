@@ -26,7 +26,7 @@ void init_task_t()
     init_task0->pdt=_pdt;
     init_task0->on_cpu=0;
     init_task0->policy = SCHED_NORMAL;
-    init_task0->time_slice = 100;
+    init_task0->time_slice = PROCESS_TIME_SLICE;
 }
 
 
@@ -70,11 +70,12 @@ uint32_t schedule(uint32_t prev_esp0)
     
     if (prev->state == TASK_RUNNING) {
         prev->state = TASK_READY;
-        prev->time_slice=100;
+        prev->time_slice=PROCESS_TIME_SLICE;
         prev->ks.esp0=prev_esp0;
         prev->ks.ss0=0x10;
         list_add_tail(&prev->ready_node,&ready_task_head);
     }
+
     
     next = pick_next_task();
     
@@ -85,7 +86,7 @@ uint32_t schedule(uint32_t prev_esp0)
         next->state = TASK_RUNNING;
         next->on_cpu = 0;
         current = next;
-        tss_globel.esp0= (uint32_t) (next->ks.esp0) + 0x1000u;
+        tss_globel.esp0= (uint32_t) next + 0x1000u;
         tss_globel.ss0=next->ks.ss0;
         return next->ks.esp0;
 }

@@ -43,7 +43,7 @@ int do_fork(uint32_t esp0)
     new_task->on_cpu=0;
     new_task->ks.esp0=(uint32_t)new_task+0x1000u-((uint32_t)current+0x1000u-esp0);
     new_task->ks.ss0=0x10;
-    new_task->time_slice=100;
+    new_task->time_slice=PROCESS_TIME_SLICE;
 
     uint32_t user_stack=(uint32_t)alloc_page();
     //map_virtual_to_physical(new_task->pdt,0xC0000000-0x1000,user_stack,0x07u);

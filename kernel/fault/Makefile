@@ -1,0 +1,1 @@
+obj-y += division_error.o general_protection.o page_fault.o

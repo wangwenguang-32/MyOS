@@ -7,8 +7,8 @@ void TASK0_TEXT task0_main()
 
 }
 
-int number1=50;
-int number2=50;
+int number1=30;
+int number2=30;
 
 void TASK0_TEXT print_hello1()
 {

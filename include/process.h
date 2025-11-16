@@ -168,4 +168,6 @@ extern struct  list_head all_task_head;
 extern struct list_head wait_task_head;
 
 
+#define PROCESS_TIME_SLICE 5
+
 #endif
