@@ -45,8 +45,7 @@ int do_fork(uint32_t esp0)
     new_task->ks.ss0=0x10;
     new_task->time_slice=PROCESS_TIME_SLICE;
 
-    uint32_t user_stack=(uint32_t)alloc_page();
-    //map_virtual_to_physical(new_task->pdt,0xC0000000-0x1000,user_stack,0x07u);
+
 
     list_add_tail(&new_task->all_tasks_node,&all_task_head);
     list_add_tail(&new_task->ready_node,&ready_task_head);

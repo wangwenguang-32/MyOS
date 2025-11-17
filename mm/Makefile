@@ -1,1 +1,1 @@
-obj-y += mmap.o p_mem.o paging.o
+obj-y += p_mem.o paging.o kmalloc.o memory.o

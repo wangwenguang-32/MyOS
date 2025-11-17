@@ -1,8 +1,8 @@
-#include<mmap.h>
 #include<p_mem.h>
 #include<printf.h>
 #include<section.h>
 #include<stdint.h>
+#include<multiboot2.h>
 
 extern uint32_t _boot_start;
 extern uint32_t _boot_end;
@@ -25,6 +25,38 @@ uint8_t mem_page[2*1024*1024] DATA = {0};
 
 int32_t last_x=0;
 int32_t last_y= -1;
+
+struct memory_region  mem_regions[MAX_MAP_NUM];
+int num_region=0;
+
+void setup_mmap(struct multiboot_tag_mmap *tag)
+{
+            multiboot_memory_map_t *map;
+            
+            for (map = ((struct multiboot_tag_mmap *) tag)->entries;
+                 (multiboot_uint8_t *) map 
+                   < (multiboot_uint8_t *) tag + tag->size;
+                 map = (multiboot_memory_map_t *) 
+                   ((unsigned long) map
+                    + ((struct multiboot_tag_mmap *) tag)->entry_size))
+                    {
+                      printf (" [base_addr = 0x%x%x, length = 0x%x%x] %s\n",
+                      (unsigned) (map->addr >> 32),
+                      (unsigned) (map->addr & 0xffffffff),
+                      (unsigned) (map->len >> 32),
+                      (unsigned) (map->len & 0xffffffff),addr_range_type_str(map->type));
+                      mem_regions[num_region].base_addr= (map->addr & 0xffffffff);
+                      mem_regions[num_region].length= (map->len & 0xffffffff);
+                      mem_regions[num_region].type=map->type;
+                      num_region++;
+                    }
+
+            int i=0;
+            
+              
+
+}
+
 
 void set_bit(uint32_t addr,uint8_t type)
 {
@@ -148,13 +180,12 @@ uint32_t alloc_pages(uint32_t count)
             if((mem_page[last_x] & (1U << last_y)) == 0)
             {
                 uint32_t start_addr = (last_x * 8 + last_y) << 12;
-                
                 if(check_pages_free(start_addr, count))
                 {
                     uint32_t end_addr = start_addr + (count << 12);
                     set_bits(start_addr, end_addr, PAGE_IN_USE);
                     
-                    uint32_t end_page_index = (end_addr >> 12);
+                    uint32_t end_page_index = (end_addr >> 12)-1;
                     last_x = end_page_index / 8;
                     last_y = end_page_index % 8;
                     
@@ -181,17 +212,17 @@ void free_pages(uint32_t start_addr, uint32_t count)
 
 
 
-void init_mem_page()
+void init_mem_regions()
 {
     uint32_t i=0;
-    for(i;i<num_mmap;i++)
+    for(i;i<num_region;i++)
     {
-        if(mmap[i].type==AddressRangeMemory)
+        if(mem_regions[i].type==AddressRangeMemory)
         {
             continue;
         }
-        unsigned long start_addr=PAGE_ALIGN_DOWN(mmap[i].base_addr);
-        unsigned long end_addr=PAGE_ALIGN_UP(mmap[i].base_addr+mmap[i].length);
+        unsigned long start_addr=PAGE_ALIGN_DOWN(mem_regions[i].base_addr);
+        unsigned long end_addr=PAGE_ALIGN_UP(mem_regions[i].base_addr+mem_regions[i].length);
         set_bits(start_addr,end_addr,PAGE_IN_USE);
     }
 
@@ -244,10 +275,10 @@ void free_page(uint32_t addr)
 
 
 
-void _init_mm()
+void _init_p_mem()
 {
     printf("boot_kernel_addr: 0x%x -- 0x%x\n",boot_kernel_start,boot_kernel_end);
     printf("kernel_addr:      0x%x -- 0x%x\n",kernel_start,kernel_end);
-    init_mem_page();
+    init_mem_regions();
 
 }

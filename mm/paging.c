@@ -44,6 +44,25 @@ int map_virtual_to_physical(page_directory_t*pdt, uint32_t virtual_addr,
     return 0;
 }
 
+int map_virtual_range_to_physical(page_directory_t*pdt,uint32_t virtual_addr,uint32_t physical_addr,uint32_t page_count,uint32_t flags) {
+    if ((virtual_addr & (PAGE_SIZE - 1)) ||
+        (physical_addr & (PAGE_SIZE - 1)) ||
+        page_count == 0) {
+        return -1;
+    }
+    uint32_t i = 0;
+
+    for (i; i < page_count; ++i) {
+        uint32_t vaddr = virtual_addr + i * PAGE_SIZE;
+        uint32_t paddr = physical_addr + i * PAGE_SIZE;
+        if (map_virtual_to_physical(pdt,vaddr, paddr, flags) != 0) {
+            return -1;
+        }
+    }
+
+    return 0;
+}
+
 // 查找虚拟地址对应的物理地址
 int translate_virtual_to_physical(page_directory_t*pdt,uint32_t virtual_addr, 
                                   uint32_t *physical_addr) {

@@ -14,7 +14,7 @@ void main(unsigned long *esp)
     cls();
     cmain(*(esp-2),*(esp-1));
     _init_idt();
-    _init_mm();
+    _init_memory();
     _init_paging();
     _apic_init(0xFF,0x20);
     _keyboard_init();

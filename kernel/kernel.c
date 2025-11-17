@@ -86,14 +86,3 @@ cmain (unsigned long magic, unsigned long addr)
 }    
 
 
-void test()
-{
-  int zero=0;
-  int result=1/zero;
-}
-
-void print_hello()
-{
-  printf("Hello,World");
-}
-

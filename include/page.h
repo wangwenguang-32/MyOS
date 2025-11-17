@@ -36,9 +36,10 @@ typedef struct {
 
 extern page_directory_t*  _pdt;
 
-extern void parse_virtual_address(uint32_t virtual_addr, virtual_addr_t *va);
-extern int map_virtual_to_physical(page_directory_t*pdt, uint32_t virtual_addr, uint32_t physical_addr, uint32_t flags) ;
-extern int translate_virtual_to_physical(page_directory_t*pdt,uint32_t virtual_addr, uint32_t *physical_addr) ;
-extern int unmap_virtual_address(page_directory_t*pdt,uint32_t virtual_addr) ;
+void parse_virtual_address(uint32_t virtual_addr, virtual_addr_t *va);
+int map_virtual_to_physical(page_directory_t*pdt, uint32_t virtual_addr, uint32_t physical_addr, uint32_t flags) ;
+int translate_virtual_to_physical(page_directory_t*pdt,uint32_t virtual_addr, uint32_t *physical_addr) ;
+int unmap_virtual_address(page_directory_t*pdt,uint32_t virtual_addr) ;
+int map_virtual_range_to_physical(page_directory_t*pdt,uint32_t virtual_addr,uint32_t physical_addr,uint32_t page_count,uint32_t flags);
 
 #endif

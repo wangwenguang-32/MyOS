@@ -3,11 +3,11 @@
 
 #include <stdint.h>
 
-void* kmalloc(uint32_t size);
+uint32_t kmalloc(uint32_t size);
 
 void kfree(void* ptr);
 
-void init_kmalloc(void);
+void _init_kmalloc(void);
 
 #endif
 
