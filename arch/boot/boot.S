@@ -95,7 +95,7 @@ _after:
 
         subl $0x6,%esp
         movl $_idt, %esi
-        subl $0xC0000000, %esi
+        addl $0xC0000000, %esi
         movl %esi,2(%esp)
         movl $_idt_limit, %esi
         subl $0xC0000000, %esi
@@ -117,6 +117,15 @@ _after:
         movl %cr0,%eax
         orl $0x80000000,%eax
         movl %eax,%cr0
+
+        subl $0x6,%esp
+        movl $_gdt,%esi
+        addl $0xC0000000,%esi
+        movl %esi,2(%esp)
+        movw _gdt_limit,%cx
+        movw %cx,(%esp)
+        lgdt (%esp)
+        addl $0x6,%esp
 
         
 

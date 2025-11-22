@@ -3,6 +3,8 @@
 .global keyboard_isr
 .global page_fault
 .global general_protection
+.global peserved_0
+.global about_double
 no_error_code:
         xchgl %eax,(%esp)
         pushl %ebx
@@ -106,3 +108,12 @@ timer_isr:
         popl %ebx
         popl %eax
         iret
+
+
+peserved_0:
+        push $do_peserved_0
+        jmp no_error_code
+
+about_double:
+        push $do_about_double
+        jmp error_code

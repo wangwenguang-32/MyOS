@@ -7,15 +7,16 @@ SECTIONS {
     _boot_end = . ;
 
     . = ALIGN(4096);                 
-    task0_phys_start = .;             
+    _task0_phys_start = .;             
     . = 0x8048000;                    
-    .task0.text : AT(task0_phys_start) {  
+    .task0.text : AT(_task0_phys_start) {  
         *(.task0.text)
     }
-    task0_phys_end = task0_phys_start + SIZEOF(.task0.text);  
+    task0_phys_tmp = _task0_phys_start + SIZEOF(.task0.text);  
 
-    . = task0_phys_end;    
-    . = ALIGN(4096);           
+    . = task0_phys_tmp;    
+    . = ALIGN(4096);     
+    _task0_phys_end = .;      
     . += 0xC0000000;                  
      _kernel_start = . ;
 

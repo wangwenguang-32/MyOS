@@ -1,6 +1,6 @@
 #include <kmalloc.h>
-#include <p_mem.h>
-#include <page.h>
+#include <phy_mem.h>
+#include <addr_translation.h>
 #include <stdint.h>
 #include <printf.h>
 #include <section.h>
@@ -42,7 +42,7 @@ static inline uint32_t align_down(uint32_t addr, uint32_t align) {
 void _init_kmalloc(void) {
     uint32_t p_heap_addr_start=alloc_pages(KERNEL_HEAP_PAGE_COUNT);
     uint32_t v_heap_addr_start=p_heap_addr_start+0xC0000000;
-    map_virtual_range_to_physical(_pdt,v_heap_addr_start,p_heap_addr_start,KERNEL_HEAP_PAGE_COUNT,PAGE_PRESENT|PAGE_WRITE);
+    //map_virtual_range_to_physical(_pdt,v_heap_addr_start,p_heap_addr_start,KERNEL_HEAP_PAGE_COUNT,PAGE_PRESENT|PAGE_WRITE);
     free_list=(kmalloc_block_t*)v_heap_addr_start;
     uint32_t size =KERNEL_HEAP_SIZE_INIT<<8;
     free_list->size=size;
@@ -116,23 +116,6 @@ static void add_to_free_list(kmalloc_block_t* block) {
     
 }
 
-// // 从空闲链表中移除块
-// static void remove_from_free_list(kmalloc_block_t* block) {
-//     kmalloc_block_t* current = free_list;
-//     kmalloc_block_t* prev = NULL;
-//     while (current != NULL) {
-//         if (current == block) {
-//             if (prev != NULL) {
-//                 prev->next = current->next;
-//             } else {
-//                 free_list = current->next;
-//             }
-//             break;
-//         }
-//         prev = current;
-//         current = current->next;
-//     }
-// }
 
 // 合并相邻的空闲块
 static kmalloc_block_t* merge_free_blocks(kmalloc_block_t* block) 

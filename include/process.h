@@ -1,9 +1,10 @@
 #ifndef  PROCESS_H
 #define PROCESS_H
 
+
 #include <stdint.h>
 #include <list.h>
-#include <page.h>
+#include <addr_translation.h>
 
 #define move_to_user_mode() \
 __asm__ ("movl $0xC0000000,%%eax\n\t" \

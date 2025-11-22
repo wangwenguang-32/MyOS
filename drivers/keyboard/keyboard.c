@@ -129,7 +129,7 @@ static void keyboard_send_data(uint8_t data) {
 }
 
 /* Initialize keyboard */
-void _keyboard_init(void) {
+void keyboard_init(void) {
     /* Enable keyboard interrupt */
     keyboard_send_command(0xAE);  /* Enable first PS/2 port */
     

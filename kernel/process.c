@@ -1,14 +1,13 @@
 #include<process.h>
 #include<stdint.h>
-#include<p_mem.h>
+#include<phy_mem.h>
 #include<section.h>
-#include<page.h>
+#include<addr_translation.h>
+#include<kernel.h>
 
 LIST_HEAD(ready_task_head);
 LIST_HEAD(all_task_head);
 LIST_HEAD(wait_task_head);
-
-extern uint32_t  task0_phys_start;
 
 #define sym_val(x)             ((uint32_t)&x)
 #define pa(x)                     (x-0xC0000000)
@@ -30,7 +29,7 @@ void init_task_t()
 }
 
 
-void _init_task0()
+void init_task()
 {
     uint32_t addr =(uint32_t)alloc_page()+0xC0000000;
     uint32_t stack_addr=(uint32_t)alloc_page();
@@ -41,8 +40,7 @@ void _init_task0()
     init_task_t();
     current=init_task0;
 
-    uint32_t task0_start=  sym_val(task0_phys_start);
-    map_virtual_to_physical(current->pdt, 0x8048000u,task0_start,0x07u);
+    map_virtual_to_physical(current->pdt, 0x8048000u,task0_phys_start,0x07u);
     map_virtual_to_physical(current->pdt, 0xC0000000-0x1000,stack_addr,0x07u);
     
     list_add(&init_task0->all_tasks_node,&all_task_head);

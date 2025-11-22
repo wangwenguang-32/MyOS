@@ -31,5 +31,7 @@ void page_fault();
 void general_protection();
 void system_call();
 void timer_isr();
+void peserved_0();
+void about_double();
 
 #endif

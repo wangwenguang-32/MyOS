@@ -8,7 +8,7 @@
 /*  The attribute of an character. */
 #define ATTRIBUTE               7
 /*  The video memory address. */
-#define VIDEO                   0xB8000
+#define VIDEO                   0xC00B8000
 
 
 void cls (void);

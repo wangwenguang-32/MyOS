@@ -49,5 +49,13 @@
 
 #define SEG_R0_TSS_AVAIL    SD_TYPE(SEG_TSS_AVAIL) | SD_CODE_DATA(0) | SD_DPL(0) | \
                                              SD_PRESENT(1) | SD_AVL(0) | SD_64BITS(0) | SD_32BITS(1) | SD_4K_GRAN(0)
+
+
+#define SEG_KERNEL_CODE    0x08
+#define SEG_KERNEL_DATA     0x10
+#define SEG_USER_CODE        0x1B
+#define SEG_USER_DATA         0x23
+
+
 #endif
 

@@ -1,10 +1,12 @@
 #include<interrupts.h>
 #include<printf.h>
 #include<io.h>
+#include<section.h>
+#include<gdt.h>
 
-#define IDT_ENTRY   200
+#define IDT_ENTRY   256
 
-unsigned long long _idt[IDT_ENTRY] __attribute__((section(".data")));
+unsigned long long _idt[IDT_ENTRY] BOOT_DATA;
 unsigned short _idt_limit=sizeof(_idt)-1;
 
 void _set_idt_entry(unsigned int vector,unsigned  short seg_selector,void (*isr)() ,unsigned char dpl)
@@ -15,15 +17,25 @@ void _set_idt_entry(unsigned int vector,unsigned  short seg_selector,void (*isr)
     _idt[vector] |=(seg_selector<<16|(offset&0x0000ffff));
     
 }
-
-
-
-void _init_idt()
+void do_peserved_0()
 {
-    _set_idt_entry(FAULT_DIVISION_ERROR,0x08,division_error,0);
-    _set_idt_entry(0x20,0x08,timer_isr,0);
-    _set_idt_entry(0x21,0x08,keyboard_isr,0);
-    _set_idt_entry(FAULT_GRNERAL_PROTECTION,0x08,general_protection,0);
-    _set_idt_entry(FAULT_PAGE_FAULT,0x08,page_fault,0);
-    _set_idt_entry(0x80,0x08,system_call,3);
+    printf("aaa\n");
+}
+
+void do_about_double()
+{
+    printf("double_fault\n");
+}
+
+
+void init_idt()
+{
+    _set_idt_entry(FAULT_DIVISION_ERROR,SEG_KERNEL_CODE,division_error,0);
+    _set_idt_entry(ABORT_DOUBLE_FAULT,SEG_KERNEL_CODE,about_double,0);
+    _set_idt_entry(FAULT_PESERVED_0,SEG_KERNEL_CODE,peserved_0,0);
+    _set_idt_entry(0x20,SEG_KERNEL_CODE,timer_isr,0);
+    _set_idt_entry(0x21,SEG_KERNEL_CODE,keyboard_isr,0);
+    _set_idt_entry(FAULT_GRNERAL_PROTECTION,SEG_KERNEL_CODE,general_protection,0);
+    _set_idt_entry(FAULT_PAGE_FAULT,SEG_KERNEL_CODE,page_fault,0);
+    _set_idt_entry(0x80,SEG_KERNEL_CODE,system_call,3);
 }

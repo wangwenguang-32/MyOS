@@ -1,5 +1,5 @@
 #include<gdt.h>
-#define GDT_ENTRY   5
+#define GDT_ENTRY   6
 extern struct tss_struct  tss_globel;
 unsigned long long _gdt[GDT_ENTRY] __attribute__((section(".boot.data")));
 unsigned short _gdt_limit __attribute__((section(".boot.data")))=sizeof(_gdt);

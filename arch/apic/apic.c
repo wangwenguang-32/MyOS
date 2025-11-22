@@ -97,7 +97,7 @@ static void ioapic_init_basic(uint8_t vector_base, uint8_t dest_apic_id) {
 }
 
 /* -------------------- Public API -------------------- */
-void _apic_init(uint8_t spurious_vector, uint8_t ext_irq_vector_base) {
+void apic_init(uint8_t spurious_vector, uint8_t ext_irq_vector_base) {
     if (!cpu_has_apic()) {
         printf("system has no apic");
         return;

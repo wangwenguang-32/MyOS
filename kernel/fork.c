@@ -1,6 +1,6 @@
 #include<printf.h>
 #include<stdint.h>
-#include<p_mem.h>
+#include<phy_mem.h>
 #include<process.h>
 #include<pid.h>
 
@@ -20,14 +20,15 @@ uint32_t copy_content()
 
 uint32_t copy_page_directory_table()
 {
-    page_directory_t*pdt=(page_directory_t*)alloc_page();
+    page_directory_t*p_pdt=(page_directory_t*)alloc_page();
+    page_directory_t*v_pdt=(uint32_t)p_pdt+0xC0000000u;
     uint32_t i=0;
     for(i;i<1024;i++)
     {
-        pdt->entries[i]=current->pdt->entries[i];
+        v_pdt->entries[i]=current->pdt->entries[i];
     }
 
-    return pdt;
+    return p_pdt;
 }
 
 int do_fork(uint32_t esp0)
