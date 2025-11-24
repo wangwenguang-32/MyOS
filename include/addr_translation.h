@@ -43,5 +43,9 @@ int map_virtual_to_physical(page_directory_t*pdt, uint32_t virtual_addr, uint32_
 int translate_virtual_to_physical(page_directory_t*pdt,uint32_t virtual_addr, uint32_t *physical_addr) ;
 int unmap_virtual_address(page_directory_t*pdt,uint32_t virtual_addr) ;
 int map_virtual_range_to_physical(page_directory_t*pdt,uint32_t virtual_addr,uint32_t physical_addr,uint32_t page_count,uint32_t flags);
+int set_page_entry(page_directory_t*pdt, uint32_t virtual_addr, page_entry_t entry);
+int get_page_entry(page_directory_t*pdt, uint32_t virtual_addr, page_entry_t *entry);
+int set_directory_entry(page_directory_t*pdt, uint32_t virtual_addr, page_entry_t entry);
+int get_directory_entry(page_directory_t*pdt, uint32_t virtual_addr, page_entry_t *entry);
 
 #endif

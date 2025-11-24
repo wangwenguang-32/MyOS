@@ -279,11 +279,9 @@ void _init_phy_mem()
     last_x=(last_alloc_addr>>12)/8;
     last_y=(last_alloc_addr>>12)%8;
 
-    printf("boot_kernel_addr:  0x%x -- 0x%x\n",boot_kernel_start,boot_kernel_end);
-    printf("task0_virt_addr:    0x%x -- 0x%x\n",task0_phys_start,task0_phys_end);
-    printf("kernel_virt_addr:   0x%x -- 0x%x\n",kernel_virt_start,kernel_virt_end);
-    printf("ssssssssss");
+    printf("boot_kernel_addr:0x%x -- 0x%x\n",boot_kernel_start,boot_kernel_end);
+    printf("task0_phys_addr:0x%x -- 0x%x\n",task0_phys_start,task0_phys_end);
+    printf("kernel_virt_addr:0x%x -- 0x%x\n",kernel_virt_start,kernel_virt_end);
     init_mem_regions();
-    printf("wwwwwwwww");
 
 }

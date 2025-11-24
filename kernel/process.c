@@ -4,17 +4,43 @@
 #include<section.h>
 #include<addr_translation.h>
 #include<kernel.h>
+#include<virt_mem.h>
+#include<gdt.h>
 
 LIST_HEAD(ready_task_head);
 LIST_HEAD(all_task_head);
 LIST_HEAD(wait_task_head);
 
-#define sym_val(x)             ((uint32_t)&x)
-#define pa(x)                     (x-0xC0000000)
+#define TASK0_VIRT_START   0x8048000u
 
 struct tss_struct  tss_globel __attribute__((aligned(4)));
 
 task_t* init_task0  DATA;
+
+
+ void init_mm_struct_t()
+ {
+    mm_struct_t*mm=init_task0->mm;
+    INIT_LIST_HEAD(&mm->vm_area_list);
+
+    mm->pgd=_pdt;
+    vm_area_t*code_area=alloc_vma();
+    code_area->vm_start=TASK0_VIRT_START;
+    code_area->vm_end=TASK0_VIRT_START+PAGE_SIZE;
+    code_area->vm_type=VMA_TYPE_CODE;
+    code_area->vm_flags=VM_READ|VM_EXEC|VM_PRIVATE;
+    insert_vma(mm,code_area);
+
+    vm_area_t*stack_area=alloc_vma();
+    stack_area->vm_start=USER_STACK_START-PAGE_SIZE;
+    stack_area->vm_end=USER_STACK_START;
+    stack_area->vm_type=VMA_TYPE_STACK;
+    stack_area->vm_flags=VM_READ|VM_WRITE|VM_PRIVATE|VM_GROWSDOWN;
+    insert_vma(mm,stack_area);
+
+
+ }
+
 
 
 void init_task_t()
@@ -22,33 +48,33 @@ void init_task_t()
     init_task0->pid=0;
     init_task0->ppid= -1;
     init_task0->state= TASK_RUNNING;
-    init_task0->pdt=_pdt;
+    init_task0->mm=(mm_struct_t*)kmalloc(sizeof(mm_struct_t));
     init_task0->on_cpu=0;
     init_task0->policy = SCHED_NORMAL;
     init_task0->time_slice = PROCESS_TIME_SLICE;
+    init_mm_struct_t();
 }
 
 
 void init_task()
 {
-    uint32_t addr =(uint32_t)alloc_page()+0xC0000000;
+    uint32_t addr =(uint32_t)alloc_page()+PAGE_OFFSET;
     uint32_t stack_addr=(uint32_t)alloc_page();
-    tss_globel.esp0=addr+0x1000;
-    tss_globel.ss0=0x10;
+    tss_globel.esp0=addr+PAGE_SIZE;
+    tss_globel.ss0=SEG_KERNEL_DATA;
 
     init_task0=(task_t*)addr;
     init_task_t();
     current=init_task0;
 
-    map_virtual_to_physical(current->pdt, 0x8048000u,task0_phys_start,0x07u);
-    map_virtual_to_physical(current->pdt, 0xC0000000-0x1000,stack_addr,0x07u);
+    vm_map_page(current->mm, TASK0_VIRT_START,task0_phys_start,PAGE_PRESENT|PAGE_WRITE|PAGE_USER);
+    vm_map_page(current->mm, PAGE_OFFSET-PAGE_SIZE,stack_addr,PAGE_PRESENT|PAGE_WRITE|PAGE_USER);
     
     list_add(&init_task0->all_tasks_node,&all_task_head);
 }
 
 
 
-/* 调度器：从运行队列中选择下一个进程 */
 task_t* pick_next_task(void)
 {
     if (list_empty(&ready_task_head)) {

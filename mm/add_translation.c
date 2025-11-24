@@ -149,6 +149,86 @@ void kernel_direct_map_init()
 
 }
 
+// 获取项（用于 COW 处理）
+int get_directory_entry(page_directory_t*pdt, uint32_t virtual_addr, page_entry_t *entry) {
+    virtual_addr_t va;
+    parse_virtual_address(virtual_addr, &va);
+    
+    if (va.page_dir_index >= PAGE_DIR_ENTRIES || 
+        va.page_table_index >= PAGE_TABLE_ENTRIES) {
+        return -1;
+    }
+    
+    page_entry_t dir_entry = pdt->entries[va.page_dir_index];
+    if (!(dir_entry & PAGE_PRESENT)) {
+        return -1;
+    }
+    *entry=dir_entry;
+    
+    return 0;
+}
+
+// 修改项（用于 COW 处理）
+int set_directory_entry(page_directory_t*pdt, uint32_t virtual_addr, page_entry_t entry) {
+    virtual_addr_t va;
+    parse_virtual_address(virtual_addr, &va);
+    
+    if (va.page_dir_index >= PAGE_DIR_ENTRIES || 
+        va.page_table_index >= PAGE_TABLE_ENTRIES) {
+        return -1;
+    }
+   
+    pdt->entries[va.page_dir_index]=entry;
+    
+    __asm__("invlpg (%0)" : : "r"(virtual_addr) : "memory");
+    return 0;
+}
+
+
+// 获取页表项（用于 COW 处理）
+int get_page_entry(page_directory_t*pdt, uint32_t virtual_addr, page_entry_t *entry) {
+    virtual_addr_t va;
+    parse_virtual_address(virtual_addr, &va);
+    
+    if (va.page_dir_index >= PAGE_DIR_ENTRIES || 
+        va.page_table_index >= PAGE_TABLE_ENTRIES) {
+        return -1;
+    }
+    
+    page_entry_t dir_entry = pdt->entries[va.page_dir_index];
+    if (!(dir_entry & PAGE_PRESENT)) {
+        return -1;
+    }
+    
+    page_table_t *pt = (page_table_t *)((dir_entry) & 0xFFFFF000u);
+    *entry = va(pt)->entries[va.page_table_index];
+    
+    return 0;
+}
+
+// 修改页表项（用于 COW 处理）
+int set_page_entry(page_directory_t*pdt, uint32_t virtual_addr, page_entry_t entry) {
+    virtual_addr_t va;
+    parse_virtual_address(virtual_addr, &va);
+    
+    if (va.page_dir_index >= PAGE_DIR_ENTRIES || 
+        va.page_table_index >= PAGE_TABLE_ENTRIES) {
+        return -1;
+    }
+    
+    page_entry_t dir_entry = pdt->entries[va.page_dir_index];
+    if (!(dir_entry & PAGE_PRESENT)) {
+        return -1;
+    }
+    
+    page_table_t *pt = (page_table_t *)((dir_entry) & 0xFFFFF000u);
+    va(pt)->entries[va.page_table_index] = entry;
+    
+    __asm__("invlpg (%0)" : : "r"(virtual_addr) : "memory");
+    
+    return 0;
+}
+
 
 void _init_paging()
 {
@@ -159,6 +239,5 @@ void _init_paging()
     kernel_direct_map_init();
     uint32_t phy_pdt=((uint32_t)_pdt)-0xC0000000;
     __asm__("movl %%eax,%%cr3;"::"a"(phy_pdt));
-    map_virtual_to_physical(_pdt,0xFEE00000u,0xFEE00000u,3u);
-    map_virtual_to_physical(_pdt,0xFEC00000u,0xFEC00000u,3u);
+    
 }

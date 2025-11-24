@@ -197,7 +197,6 @@ uint32_t kmalloc(uint32_t size) {
     size = align_up(size, MIN_ALLOC_SIZE);
     
     kmalloc_block_t* block = find_free_block(size);
-    printf("block:%x\n",block);
     if (block != NULL) {
         if (block->size >= size + BLOCK_HEADER_SIZE) {
             kmalloc_block_t* new_block = (kmalloc_block_t*)((uint8_t*)block + BLOCK_HEADER_SIZE + size);

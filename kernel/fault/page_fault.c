@@ -20,9 +20,10 @@ void handle_user_write_prot_fault(unsigned long fault_addr)
 
 void do_page_fault(uint32_t error_code)
 {
-    while(1);
     uint32_t addr=0;
     __asm__("movl %%cr2,%%eax;":"=a"(addr) :);
+    printf("page fault addr:%x    error_code:0x%x\n",addr,error_code);
+    while(1);
     if(error_code==(PF_ERR_USER | PF_ERR_WRITE | PF_ERR_PRESENT))
     {
         handle_user_write_prot_fault(addr);

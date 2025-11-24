@@ -33,6 +33,8 @@ typedef unsigned int uint32_t;
     typedef unsigned int uintptr_t;
 #endif
 
+#define NULL ((void*)0)
+
 // 最大整数类型
 typedef int64_t intmax_t;
 typedef uint64_t uintmax_t;

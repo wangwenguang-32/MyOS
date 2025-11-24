@@ -2,9 +2,10 @@
 #define PROCESS_H
 
 
-#include <stdint.h>
-#include <list.h>
-#include <addr_translation.h>
+#include<stdint.h>
+#include<list.h>
+#include<addr_translation.h>
+#include<virt_mem.h>
 
 #define move_to_user_mode() \
 __asm__ ("movl $0xC0000000,%%eax\n\t" \
@@ -117,8 +118,6 @@ typedef struct task_struct {
 	volatile task_state_t state;
 	uint32_t       flags;
 
-    /*page directory*/
-    page_directory_t*pdt;
 
 	/* 调度相关 */
 	sched_policy_t policy;
@@ -141,9 +140,8 @@ typedef struct task_struct {
 	kernel_stack_t  ks;               /* 进出调度器保存/恢复 */
 
 	/* 地址空间/内存管理 */
-	//struct mm_struct *mm;             /* 进程地址空间（线程共享） */
+	struct mm_struct *mm;             /* 进程地址空间（线程共享） */
 	//struct mm_struct *active_mm;      /* 内核线程使用的活跃 mm（通常借用） */
-	//struct vm_area  *mmap;            /* VMA 链表/树根（可选） */
 
 	/* 同步/等待 */
 	//struct wait_queue *wait_queue;    /* 简化版本等待队列指针 */
