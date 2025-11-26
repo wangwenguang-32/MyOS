@@ -4,31 +4,10 @@
 
 void TASK0_TEXT task0_main()
 {
-
+    //printf("task0\n");
 }
 
-int number1=30;
-int number2=30;
-
-void TASK0_TEXT print_hello1()
+void TASK0_TEXT task1_main()
 {
-    if(number1>0)
-    {
-        printf("Hello   ");
-        number1--;
-    }
-    int i=0;
-    for(i;i<0x100000;i++);
-    
-}
-
-void TASK0_TEXT print_hello2()
-{
-     if(number2>0)
-    {
-        printf("World   ");
-        number2--;
-    }
-     int i=0;
-    for(i;i<0x100000;i++);
+    //printf("task1\n");
 }

@@ -25,10 +25,10 @@ uint32_t copy_page_directory_table()
 {
     page_directory_t*p_pgd=(page_directory_t*)alloc_page();
     page_directory_t*v_pgd=(uint32_t)p_pgd+PAGE_OFFSET;
-    uint32_t i=0;
-    for(i;i<1024;i++)
+    uint32_t index=PAGE_OFFSET>>22;
+    for(index;index<PAGE_DIR_ENTRIES;index++)
     {
-        v_pgd->entries[i]=current->mm->pgd->entries[i];
+        v_pgd->entries[index]=current->mm->pgd->entries[index];
     }
 
     return v_pgd;

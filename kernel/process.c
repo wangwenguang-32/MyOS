@@ -67,50 +67,11 @@ void init_task()
     init_task_t();
     current=init_task0;
 
-    vm_map_page(current->mm, TASK0_VIRT_START,task0_phys_start,PAGE_PRESENT|PAGE_WRITE|PAGE_USER);
-    vm_map_page(current->mm, PAGE_OFFSET-PAGE_SIZE,stack_addr,PAGE_PRESENT|PAGE_WRITE|PAGE_USER);
+    vm_map_page(current->mm, TASK0_VIRT_START,task0_phys_start,PAGE_PRESENT|PAGE_WRITE|PAGE_USER|PAGE_COW);
+    vm_map_page(current->mm, PAGE_OFFSET-PAGE_SIZE,stack_addr,PAGE_PRESENT|PAGE_WRITE|PAGE_USER|PAGE_COW);
     
     list_add(&init_task0->all_tasks_node,&all_task_head);
 }
 
 
 
-task_t* pick_next_task(void)
-{
-    if (list_empty(&ready_task_head)) {
-        return current; 
-    }
-    
-    struct list_head *node = ready_task_head.next;
-    task_t*next;
-    next=list_entry(node,task_t,ready_node);
-    return next;
-}
-/* 主调度函数 */
-uint32_t schedule(uint32_t prev_esp0)
-{
-    task_t* prev = current;
-    task_t* next = 0;
-    
-    if (prev->state == TASK_RUNNING) {
-        prev->state = TASK_READY;
-        prev->time_slice=PROCESS_TIME_SLICE;
-        prev->ks.esp0=prev_esp0;
-        prev->ks.ss0=0x10;
-        list_add_tail(&prev->ready_node,&ready_task_head);
-    }
-
-    
-    next = pick_next_task();
-    
-        if (next->state == TASK_READY) {
-            list_del(&next->ready_node);
-        }
-        
-        next->state = TASK_RUNNING;
-        next->on_cpu = 0;
-        current = next;
-        tss_globel.esp0= (uint32_t) next + 0x1000u;
-        tss_globel.ss0=next->ks.ss0;
-        return next->ks.esp0;
-}

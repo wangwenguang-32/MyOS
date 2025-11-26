@@ -25,6 +25,9 @@
 #define FAULT_VIRTUALIZATION_EXCEPTION                      0x14
 #define FAULT_CONTROL_PROTECTION                             0x15
 
+#define disable_irq()  __asm__ __volatile__ ("cli" : : : "memory")
+#define enable_irq()   __asm__ __volatile__ ("sti" : : : "memory")
+
 void division_error();
 void keyboard_isr();
 void page_fault();

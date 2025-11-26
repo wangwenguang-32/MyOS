@@ -46,8 +46,9 @@ fi
 # 挂载分区
 echo "挂载 $PART_DEV 到 $MOUNT_DIR"
 mount "$PART_DEV" "$MOUNT_DIR"
- 
 echo -e "\n挂载成功！"
+echo -e "\n更新成功！"
 cp  kernel.bin ./hdc/boot/
 echo "sudo umount $MOUNT_DIR && sudo losetup -d $LOOP_DEV"
+echo -e "\n卸载成功"
 sudo umount $MOUNT_DIR && sudo losetup -d $LOOP_DEV

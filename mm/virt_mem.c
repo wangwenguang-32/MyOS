@@ -530,53 +530,8 @@ int mm_copy(mm_struct_t *dst_mm, mm_struct_t *src_mm) {
         
         if (src_vma->vm_flags & VM_PRIVATE) {
             uint32_t size = src_vma->vm_end - src_vma->vm_start;
-            uint32_t page_count = size >> 12;
-            uint32_t i;
-            
-            for (i = 0; i < page_count; i++) {
-                uint32_t src_vaddr = src_vma->vm_start + (i << 12);
-                uint32_t src_paddr;
-                
-                if (translate_virtual_to_physical(src_mm->pgd, src_vaddr, &src_paddr) == 0) {
-                    page_entry_t src_entry;
-                    if (get_page_entry(src_mm->pgd, src_vaddr, &src_entry) != 0) {
-                        mm_destroy(dst_mm);
-                        return -1;
-                    }
-                    if (src_entry & PAGE_WRITE) {
-                        page_entry_t new_src_entry = src_entry & ~PAGE_WRITE;
-                        if (set_page_entry(src_mm->pgd, src_vaddr, new_src_entry) != 0) {
-                            mm_destroy(dst_mm);
-                            return -1;
-                        }
-                    }
-
-                     if (get_directory_entry(src_mm->pgd, src_vaddr, &src_entry) != 0) {
-                        mm_destroy(dst_mm);
-                        return -1;
-                    }
-                    if (src_entry & PAGE_WRITE) {
-                        page_entry_t new_src_entry = src_entry & ~PAGE_WRITE;
-                        if (set_directory_entry(src_mm->pgd, src_vaddr, new_src_entry) != 0) {
-                            mm_destroy(dst_mm);
-                            return -1;
-                        }
-                    }
-                     if (get_directory_entry(dst_mm->pgd, src_vaddr, &src_entry) != 0) {
-                        mm_destroy(dst_mm);
-                        return -1;
-                    }
-                
-                    if (src_entry & PAGE_WRITE) {
-                        page_entry_t new_src_entry = src_entry & ~PAGE_WRITE;
-                        if (set_directory_entry(dst_mm->pgd, src_vaddr, new_src_entry) != 0) {
-                            mm_destroy(dst_mm);
-                            return -1;
-                        }
-                    }
-
-                }
-            }
+            set_virtual_range_readonly(src_mm->pgd,src_vma->vm_start,size);
+            copy_page_directory_range(dst_mm->pgd,src_mm->pgd,src_vma->vm_start,size);
         } else {
             uint32_t size = src_vma->vm_end - src_vma->vm_start;
             uint32_t page_count = size >> 12;

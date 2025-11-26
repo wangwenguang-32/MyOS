@@ -13,6 +13,7 @@ task0_start:
 		int $0x80
 		cmpl $0,%eax
 		je zi
+		call task0_main
 loop1:
 	 	movl $3,%eax
 		
@@ -22,6 +23,7 @@ zero1:
 		jz  zero1
      	jmp  loop1
 zi:
+		call task1_main
 loop2:
 	 	movl $4,%eax
 	 	
