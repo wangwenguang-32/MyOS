@@ -5,6 +5,25 @@
 .global general_protection
 .global peserved_0
 .global about_double
+.global int_1
+.global int_2
+.global int_3
+.global int_4
+.global int_5
+.global int_6
+.global int_7
+.global int_A
+.global int_B
+.global int_C
+.global int_F
+.global int_10
+.global int_11
+.global int_12
+.global int_13
+.global int_14
+.global int_15
+
+
 no_error_code:
         xchgl %eax,(%esp)
         pushl %ebx
@@ -76,8 +95,8 @@ general_protection:
 
 
 /* 定时器中断处理 */
-.global timer_isr
-timer_isr:
+.global context_switch
+context_switch:
         pushl %eax
         pushl %ebx
         pushl %ecx
@@ -117,3 +136,76 @@ peserved_0:
 about_double:
         push $do_about_double
         jmp error_code
+
+
+int_1:
+        push $do_int1
+        jmp no_error_code
+
+int_2:
+        push $do_int2
+        jmp no_error_code
+
+int_3:
+        push $do_int3
+        jmp no_error_code
+
+int_4:
+        push $do_int4
+        jmp no_error_code
+
+int_5:
+        push $do_int5
+        jmp no_error_code
+
+int_6:
+        push $do_int6
+        jmp no_error_code
+
+int_7:
+        push $do_int7
+        jmp no_error_code
+
+
+int_A:
+        push $do_intA
+        jmp error_code
+
+int_B:
+        push $do_intB
+        jmp error_code
+
+int_C:
+        push $do_intC
+        jmp error_code
+
+int_F:
+        push $do_intF
+        jmp no_error_code
+
+int_10:
+        push $do_int10
+        jmp no_error_code
+
+int_11:
+        push $do_int11
+        jmp error_code
+
+
+int_12:
+        push $do_int12
+        jmp no_error_code
+
+int_13:
+        push $do_int13
+        jmp no_error_code
+
+int_14:
+        push $do_int14
+        jmp no_error_code
+
+int_15:
+        push $do_int15
+        jmp no_error_code
+
+

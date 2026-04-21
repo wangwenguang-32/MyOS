@@ -1,8 +1,9 @@
-#include <stdint.h>
-#include <keyboard.h>
-#include <io.h>
-#include <apic.h>
-#include <printf.h>
+#include<stdint.h>
+#include<keyboard.h>
+#include<io.h>
+#include<apic.h>
+#include<printf.h>
+#include<tty.h>
 
 /* PS/2 Keyboard ports */
 #define KEYBOARD_DATA_PORT    0x60
@@ -79,11 +80,11 @@ static const char scan_code_normal[128] = {
 static const char scan_code_shift[128] = {
     0,   0,   '!', '@', '#', '$', '%', '^',  /* 0x00-0x07 */
     '&', '*', '(', ')', '_', '+', 0,   0,    /* 0x08-0x0F */
-    'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I',  /* 0x10-0x17 */
-    'O', 'P', '{', '}', 0,   0,   'A', 'S',  /* 0x18-0x1F */
-    'D', 'F', 'G', 'H', 'J', 'K', 'L', ':',  /* 0x20-0x27 */
-    '"', '~', 0,   '|', 'Z', 'X', 'C', 'V',  /* 0x28-0x2F */
-    'B', 'N', 'M', '<', '>', '?', 0,   '*',  /* 0x30-0x37 */
+    'q', 'w', 'e', 'r', 't', 'y', 'u', 'i',  /* 0x10-0x17 */
+    'o', 'p', '{', '}', 0,   0,   'a', 's',  /* 0x18-0x1F */
+    'd', 'f', 'g', 'h', 'j', 'k', 'l', ':',  /* 0x20-0x27 */
+    '"', '~', 0,   '|', 'z', 'x', 'c', 'v',  /* 0x28-0x2F */
+    'b', 'n', 'm', '<', '>', '?', 0,   '*',  /* 0x30-0x37 */
     0,   ' ', 0,   0,   0,   0,   0,   0,    /* 0x38-0x3F */
     0,   0,   0,   0,   0,   0,   0,   '7',  /* 0x40-0x47 */
     '8', '9', '-', '4', '5', '6', '+', '1',  /* 0x48-0x4F */
@@ -220,7 +221,7 @@ static void keyboard_process_scan_code(uint8_t scan_code) {
         uint8_t shift = (keyboard_state & STATE_SHIFT) ? 1 : 0;
         uint8_t caps = (keyboard_state & STATE_CAPS) ? 1 : 0;
         
-        if (shift || caps) {
+        if (shift) {
             ch = scan_code_shift[scan_code];
         } else {
             ch = scan_code_normal[scan_code];
@@ -230,13 +231,13 @@ static void keyboard_process_scan_code(uint8_t scan_code) {
         if (ch == 0) {
             switch (scan_code) {
             case KEY_ENTER:
-                ch = '\n';
+                ch = 0x0D;
                 break;
             case KEY_TAB:
-                ch = '\t';
+                ch = 0x09;
                 break;
             case KEY_BACKSPACE:
-                ch = '\b';
+                ch = 0x08;
                 break;
             case KEY_ESC:
                 ch = 0x1B;  /* ESC character */
@@ -246,13 +247,17 @@ static void keyboard_process_scan_code(uint8_t scan_code) {
         
         /* Add character to buffer if valid */
         if (ch != 0) {
+            if(ch>=97&&ch<=122&&(shift ^ caps))
+            {
+                ch-=32;
+            }
             uint32_t next_tail = (keyboard_buffer_tail + 1) % KEYBOARD_BUFFER_SIZE;
             if (next_tail != keyboard_buffer_head) {
                 keyboard_buffer[keyboard_buffer_tail] = ch;
                 keyboard_buffer_tail = next_tail;
             }
         }
-        printf("%c   ",ch);
+        tty_handle_char(&tty,ch);
     }
     
     extended_scan = 0;

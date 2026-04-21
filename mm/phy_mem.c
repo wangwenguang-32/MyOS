@@ -5,16 +5,13 @@
 #include<multiboot2.h>
 #include<kernel.h>
 
-
-
 uint8_t mem_page[2*1024*1024] DATA = {0};
 
 #define PAGE_IN_USE  1   // 内存页正在使用
 #define PAGE_FREE    0   // 内存页空闲
 
-
-int32_t last_x=0;
-int32_t last_y= -1;
+int32_t x=0;
+int32_t y=0;
 struct memory_region  mem_regions[MAX_MAP_NUM];
 int num_region=0;
 
@@ -150,47 +147,41 @@ uint32_t alloc_pages(uint32_t count)
         return 0;
     }
     
-    int32_t x = last_x;
-    int32_t y = last_y;
+    int32_t start_x = x;
+    int32_t start_y = y;
     
-    for(last_y++; (last_x != x || last_y != y); last_x++)
+    do
     {
-        if(last_x == 0x200000)
+        
+        
+        if(mem_page[x] == 0xFF)
         {
-            last_x = 0;
-        }
-        if(last_y == 8)
-        {
-            last_y = 0;
+            x=(x+1)%0x200000;
+            y = 0;
             continue;
         }
         
-        if(mem_page[last_x] == 0xFF)
+        for(; y < 8; y=(y+1))
         {
-            last_y = 0;
-            continue;
-        }
-        
-        for(; last_y < 8; last_y++)
-        {
-            if((mem_page[last_x] & (1U << last_y)) == 0)
+            if((mem_page[x] & (1U << y)) == 0)
             {
-                uint32_t start_addr = (last_x * 8 + last_y) << 12;
+                uint32_t start_addr = (x * 8 + y) << 12;
                 if(check_pages_free(start_addr, count))
                 {
                     uint32_t end_addr = start_addr + (count << 12);
                     set_bits(start_addr, end_addr, PAGE_IN_USE);
                     
                     uint32_t end_page_index = (end_addr >> 12)-1;
-                    last_x = end_page_index / 8;
-                    last_y = end_page_index % 8;
+                    x = end_page_index / 8;
+                    y = end_page_index % 8;
                     
                     return start_addr;
                 }
             }
         }
-        last_y = 0;
-    }
+        x=(x+1)%0x200000;
+        y = 0;
+    }while(x != start_x || y != start_y);
     
     return 0; 
 }
@@ -233,35 +224,30 @@ void init_mem_regions()
 
 uint32_t alloc_page()
 {
-    int32_t x=last_x;
-    int32_t y=last_y;
-    for(last_y++;(last_x!=x||last_y!=y);last_x++)
+    
+    int32_t start_x=x;
+    int32_t start_y=y;
+    do
     {
-        if(mem_page[last_x]==0xFF)
+        if(mem_page[x]==0xFF)
         {
-            last_y=0;
+            x = (x + 1) % 0x200000;
+            y=0;
             continue;
         }
-        if(last_x==0x200000)
+        for(y;y<8;y++)
         {
-            last_x=0;
-        }
-        if(last_y==8)
-        {
-            last_y=0;
-            continue;
-        }
-        for(last_y;last_y<8;last_y++)
-        {
-            if((mem_page[last_x]&(1U<<last_y))==0)
+            if((mem_page[x]&(1U<<y))==0)
             {
                 
-                unsigned long addr=(last_x*8+last_y)<<12;
+                unsigned long addr=(x*8+y)<<12;
                 set_bit(addr,PAGE_IN_USE);
                 return addr;
             }
         }
-    }
+        x = (x + 1) % 0x200000;
+        y=0;
+    }while(x!=start_x||y!=start_y);
 
 }
 
@@ -275,13 +261,18 @@ void free_page(uint32_t addr)
 
 void _init_phy_mem()
 {
-    uint32_t last_alloc_addr=kernel_virt_end-0x1000-0xC0000000;
-    last_x=(last_alloc_addr>>12)/8;
-    last_y=(last_alloc_addr>>12)%8;
+    uint32_t last_alloc_addr=kernel_virt_end-0xC0000000;
+    x=(last_alloc_addr>>12)/8;
+    y=(last_alloc_addr>>12)%8;
 
     printf("boot_kernel_addr:0x%x -- 0x%x\n",boot_kernel_start,boot_kernel_end);
     printf("task0_phys_addr:0x%x -- 0x%x\n",task0_phys_start,task0_phys_end);
     printf("kernel_virt_addr:0x%x -- 0x%x\n",kernel_virt_start,kernel_virt_end);
+
+    printf("memory alloc start:0x%x\n",last_alloc_addr);
     init_mem_regions();
+
+    
+    
 
 }

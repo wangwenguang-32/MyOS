@@ -30,12 +30,19 @@ uint32_t schedule(uint32_t prev_esp0)
         prev->state = TASK_READY;
         prev->time_slice=PROCESS_TIME_SLICE;
         prev->ks.esp0=prev_esp0;
-        prev->ks.ss0=0x10;
+        prev->ks.ss0=SEG_KERNEL_DATA;
         list_add_tail(&prev->ready_node,&ready_task_head);
     }
 
-    
-    next = pick_next_task();
+    if(prev->state==TASK_BLOCKED)
+    {
+        prev->ks.esp0=prev_esp0;
+        prev->ks.ss0=SEG_KERNEL_DATA;
+        list_add_tail(&prev->block_node,&block_task_head);
+
+    }
+
+        next = pick_next_task();
     
         if (next->state == TASK_READY) {
             list_del(&next->ready_node);

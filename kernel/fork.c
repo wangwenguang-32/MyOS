@@ -6,13 +6,13 @@
 #include<kmalloc.h>
 #include<virt_mem.h>
 #include<kernel.h>
+#include<common.h>
 
 uint32_t copy_content()
 {
     uint32_t*new_task=(uint32_t*)(alloc_page()+PAGE_OFFSET);
     uint32_t*current_task=current;
-    uint32_t i=0;
-    for(i;i<1024;i++)
+    loop(1024)
     {
         *(new_task+i)=*(current_task+i);
     }
@@ -25,6 +25,7 @@ uint32_t copy_page_directory_table()
 {
     page_directory_t*p_pgd=(page_directory_t*)alloc_page();
     page_directory_t*v_pgd=(uint32_t)p_pgd+PAGE_OFFSET;
+    //printf("%x\n",current->mm->pgd);
     uint32_t index=PAGE_OFFSET>>22;
     for(index;index<PAGE_DIR_ENTRIES;index++)
     {

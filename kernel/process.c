@@ -9,7 +9,8 @@
 
 LIST_HEAD(ready_task_head);
 LIST_HEAD(all_task_head);
-LIST_HEAD(wait_task_head);
+LIST_HEAD(block_task_head);
+LIST_HEAD(sleep_task_head);
 
 #define TASK0_VIRT_START   0x8048000u
 

@@ -103,7 +103,7 @@ _after:
         movw %cx,(%esp)
         lidt (%esp)
         addl $0x6,%esp
-        sti
+        
 
 
 
@@ -126,10 +126,7 @@ _after:
         movw %cx,(%esp)
         lgdt (%esp)
         addl $0x6,%esp
-
         
-
-
 
         pushl $(stack + STACK_SIZE)
         pushl $main

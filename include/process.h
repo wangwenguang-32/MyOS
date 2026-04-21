@@ -130,7 +130,8 @@ typedef struct task_struct {
 	list_node_t    ready_node;          /* 运行队列节点 */
 	list_node_t    all_tasks_node;    /* 全局任务链表节点 */
 	list_node_t    sibling_node;      /* 子进程链表节点 */
-	list_node_t    wait_node;         /* 等待队列节点 */
+	list_node_t    block_node;         /* 等待队列节点 */
+	list_node_t    sleep_node;         /*睡眠队列节点*/
 
 	/* 亲和性与负载均衡 */
 	cpu_affinity_t affinity;
@@ -164,7 +165,8 @@ task_t* current;
 
 extern struct  list_head ready_task_head;
 extern struct  list_head all_task_head;
-extern struct list_head wait_task_head;
+extern struct list_head block_task_head;
+extern struct list_head sleep_task_head;
 
 
 #define PROCESS_TIME_SLICE 5

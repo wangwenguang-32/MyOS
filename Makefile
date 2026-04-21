@@ -14,7 +14,7 @@ OBJDUMP		= $(CROSS_COMPILE)objdump
 export AS LD CC CPP AR NM
 export STRIP OBJCOPY OBJDUMP
 
-CFLAGS :=   -m32 -fno-builtin -fno-stack-protector -nostartfiles -g
+CFLAGS :=   -m32 -fno-builtin -fno-stack-protector -nostartfiles -g -std=gnu99
 CFLAGS += -I $(shell pwd)/include
 
 LDFLAGS := -T linker.lds -m32 -nostdlib -Wl,--build-id=none
@@ -27,7 +27,7 @@ export TOPDIR
 TARGET := kernel.bin
 
 
-obj-y += arch/ init/ kernel/ mm/ drivers/
+obj-y += arch/ init/ kernel/ mm/ drivers/ fs/
 
 
 all : start_recursive_build $(TARGET)

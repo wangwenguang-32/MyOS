@@ -1,6 +1,7 @@
-#include <stdint.h>
-#include "acpi.h"
-#include <printf.h>
+#include<stdint.h>
+#include<acpi.h>
+#include<printf.h>
+#include<common.h>
 /*
  * Minimal ACPI parsing for 32-bit freestanding OS.
  * - RSDP scan: EBDA (0x40E:EBDA seg) 1KB + BIOS area 0xE0000..0xFFFFF
@@ -24,8 +25,7 @@ static inline uint16_t bda_read16(uint32_t offset) {
 static inline uint8_t sum_bytes(const void *p, uint32_t len) {
     const uint8_t *b = (const uint8_t *)p;
     uint32_t s = 0;
-    int32_t i=0;
-    for (i;i<len;i++) s += b[i];
+    loop(len) s += b[i];
     return (uint8_t)(s & 0xFF);
 }
 
@@ -75,8 +75,7 @@ static const ACPISDTHeader* find_in_rsdt(const ACPISDTHeader *rsdt, const char s
     if (!validate_sdt(rsdt)) return 0;
     uint32_t entries = (rsdt->length - sizeof(ACPISDTHeader)) / 4;
     const uint32_t *ptrs = (const uint32_t *)(rsdt + 1);
-    uint32_t i=0;
-    for (i;i<entries;i++) {
+    loop(entries) {
         const ACPISDTHeader *t = (const ACPISDTHeader *)(uintptr_t)ptrs[i];
         if (!t) continue;
         if (t->signature[0]==sig[0] && t->signature[1]==sig[1] && t->signature[2]==sig[2] && t->signature[3]==sig[3]) {
@@ -91,8 +90,7 @@ static const ACPISDTHeader* find_in_xsdt(const ACPISDTHeader *xsdt, const char s
     if (!validate_sdt(xsdt)) return 0;
     uint32_t entries = (xsdt->length - sizeof(ACPISDTHeader)) / 8;
     const uint64_t *ptrs = (const uint64_t *)(xsdt + 1);
-    uint32_t i=0;
-    for (i;i<entries;i++) {
+    loop(entries) {
         const ACPISDTHeader *t = (const ACPISDTHeader *)(uintptr_t)ptrs[i];
         if (!t) continue;
         if (t->signature[0]==sig[0] && t->signature[1]==sig[1] && t->signature[2]==sig[2] && t->signature[3]==sig[3]) {
@@ -103,13 +101,17 @@ static const ACPISDTHeader* find_in_xsdt(const ACPISDTHeader *xsdt, const char s
 }
 
 int acpi_init(void) {
+    
     g_rsdp = find_rsdp();
+    
     if (!g_rsdp) return 0;
     g_rsdt = 0; g_xsdt = 0;
+    
     if (g_rsdp->rsdt_physical_address) {
         g_rsdt = (const ACPISDTHeader *)(uintptr_t)g_rsdp->rsdt_physical_address;
         if (!validate_sdt(g_rsdt)) g_rsdt = 0;
     }
+    
     if (g_rsdp->revision >= 2 && g_rsdp->xsdt_physical_address) {
         g_xsdt = (const ACPISDTHeader *)(uintptr_t)g_rsdp->xsdt_physical_address;
         if (!validate_sdt(g_xsdt)) g_xsdt = 0;

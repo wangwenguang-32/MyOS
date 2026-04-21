@@ -4,4 +4,5 @@
 void do_division_error()
 {
         printf("aaa\n");
+        while(1);
 }

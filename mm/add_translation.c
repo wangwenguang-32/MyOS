@@ -237,15 +237,19 @@ void kernel_direct_map_init()
 {
     uint32_t count=DIRECT_MAP_SIZE>>12;
     map_virtual_range_to_physical(_pdt,0xC0000000,0x0,count,PAGE_PRESENT|PAGE_WRITE);
+    map_virtual_to_physical(_pdt,0xfebf0000,0xfebf0000,PAGE_PRESENT|PAGE_WRITE);
+    map_virtual_range_to_physical(_pdt,0xfe000000,0xfe000000,16,PAGE_PRESENT|PAGE_WRITE);
 
 }
 
 void _init_paging()
 {
+    
     uint8_t*addr=(uint8_t*)boot_kernel_start;
     uint16_t index=0;
     MEM_ZERO(addr,PAGE_SIZE);
     _pdt=(page_directory_t*)(boot_kernel_start+0xC0000000);
+    
     kernel_direct_map_init();
     uint32_t phy_pdt=((uint32_t)_pdt)-0xC0000000;
     __asm__("movl %%eax,%%cr3;"::"a"(phy_pdt));

@@ -80,6 +80,8 @@ void handle_user_write_prot_fault(unsigned long fault_addr)
 
 void do_page_fault(uint32_t error_code)
 {
+    printf("page fault\n");
+    while(1);
     uint32_t addr=0;
     __asm__("movl %%cr2,%%eax;":"=a"(addr) :);
     printf("error code:0x%x   fault virt addr:0x%x\n",error_code,addr);
@@ -87,5 +89,4 @@ void do_page_fault(uint32_t error_code)
     {
         handle_user_write_prot_fault(addr);
     }
-    
 }
