@@ -1,12 +1,12 @@
 #include <process.h>
 #include <stdint.h>
-#include <phy_mem.h>
-#include <section.h>
-#include <addr_translation.h>
+#include <physical_memory.h>
+#include <sections.h>
+#include <paging.h>
 #include <kernel.h>
-#include <virt_mem.h>
+#include <virtual_memory.h>
 #include <gdt.h>
-#include <schedule.h>
+#include <scheduler.h>
 
 extern struct tss_struct tss_globel;
 

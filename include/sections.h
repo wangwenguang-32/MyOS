@@ -1,5 +1,5 @@
-#ifndef  SECCION_H
-#define SECCION_H
+#ifndef  MYOS_SECTIONS_H
+#define MYOS_SECTIONS_H
 
 #ifndef ASSEMBLY
 

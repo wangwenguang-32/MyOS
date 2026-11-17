@@ -2,6 +2,7 @@
 #include<apic.h>
 #include<keyboard.h>
 #include<process.h>
+#include <memory.h>
 
 void main(unsigned long *esp)
 {
@@ -10,7 +11,11 @@ void main(unsigned long *esp)
     multiboot_info_process(*(esp-2),*(esp-1));
     
     init_idt();
-    init_memory();
+    int memory_error = init_memory();
+    if (memory_error) {
+        printf("Memory initialization failed: %d\n", memory_error);
+        for (;;) __asm__ volatile("cli; hlt");
+    }
     apic_init(0xFF,0x20);
     keyboard_init();
     // svga_init();

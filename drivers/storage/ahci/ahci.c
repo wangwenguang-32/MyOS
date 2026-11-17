@@ -1,8 +1,9 @@
 #include<stdint.h>
 #include<pci.h>
 #include<ahci.h>
-#include<iomap.h>
+#include<io_mapping.h>
 #include<common.h>
+#include <dma.h>
 
 #define KERNEL_BASE        0xC0000000U
 
@@ -183,19 +184,23 @@ int ahci_init() {
         return -1;
     }
 
-    cmdlist_pa = alloc_page();
-    cmdtbl_pa = alloc_page();
-    fis_pa = alloc_page();
-    disk_buf_pa = alloc_page();
-
-    if (!cmdlist_pa || !cmdtbl_pa || !fis_pa || !disk_buf_pa) return -1;
-    cmdlist_va = (AHCI_CMD_HEADER*)(cmdlist_pa + KERNEL_BASE);
-    cmdtbl_va = (AHCI_CMD_TBL*)(cmdtbl_pa + KERNEL_BASE);
-    disk_buf = (uint8_t*)(disk_buf_pa + KERNEL_BASE);
+    void *fis_va;
+    cmdlist_va = dma_alloc_coherent(4096, 0xffffffffU, &cmdlist_pa);
+    cmdtbl_va = dma_alloc_coherent(4096, 0xffffffffU, &cmdtbl_pa);
+    fis_va = dma_alloc_coherent(4096, 0xffffffffU, &fis_pa);
+    disk_buf = dma_alloc_coherent(4096, 0xffffffffU, &disk_buf_pa);
+    if (!cmdlist_va || !cmdtbl_va || !fis_va || !disk_buf) {
+        dma_free_coherent(cmdlist_va);
+        dma_free_coherent(cmdtbl_va);
+        dma_free_coherent(fis_va);
+        dma_free_coherent(disk_buf);
+        cmdlist_va = 0; cmdtbl_va = 0; disk_buf = 0;
+        return -1;
+    }
 
     mem_zero(cmdlist_va, 1024); // 32 * 32B
     mem_zero(cmdtbl_va, sizeof(AHCI_CMD_TBL));
-    mem_zero((void*)(fis_pa + KERNEL_BASE), 256);
+    mem_zero(fis_va, 256);
     mem_zero(disk_buf, 512);
 
     uint32_t cap = ahci_mmio[AHCI_CAP / 4];

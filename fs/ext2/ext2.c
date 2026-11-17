@@ -1,6 +1,6 @@
 #include "ext2.h"
-#include "blk_dev.h"
-#include "kmalloc.h"
+#include "block_device.h"
+#include "heap.h"
 #include "printf.h"
 #include "string.h"
 #include <stddef.h>

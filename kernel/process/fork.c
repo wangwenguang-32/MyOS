@@ -1,10 +1,10 @@
 #include <printf.h>
 #include <stdint.h>
-#include <phy_mem.h>
+#include <physical_memory.h>
 #include <process.h>
 #include <pid.h>
-#include <kmalloc.h>
-#include <virt_mem.h>
+#include <heap.h>
+#include <virtual_memory.h>
 #include <kernel.h>
 #include <common.h>
 

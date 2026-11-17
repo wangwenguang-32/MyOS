@@ -1,7 +1,7 @@
 #include <interrupts.h>
 #include <printf.h>
 #include <io.h>
-#include <section.h>
+#include <sections.h>
 #include <gdt.h>
 
 #define IDT_ENTRY   256

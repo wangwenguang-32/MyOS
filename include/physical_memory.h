@@ -1,5 +1,5 @@
-#ifndef  P_MEM_H
-#define P_MEM_H
+#ifndef  MYOS_PHYSICAL_MEMORY_H
+#define MYOS_PHYSICAL_MEMORY_H
 
 #include<stdint.h>
 
@@ -41,7 +41,9 @@ uint32_t alloc_pages(uint32_t count);
 void free_pages(uint32_t start_addr, uint32_t count);
 
 struct multiboot_tag_mmap;
+void reserve_boot_memory(uint32_t start, uint32_t end);
 void setup_mmap(struct multiboot_tag_mmap *tag);
-void _init_phy_mem(void);
+int _init_phy_mem(void);
+void physical_memory_enable_direct_map(void);
 
 #endif

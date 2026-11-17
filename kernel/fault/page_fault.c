@@ -1,10 +1,10 @@
 #include <printf.h>
 #include <process.h>
 #include <stdint.h>
-#include <addr_translation.h>
-#include <phy_mem.h>
+#include <paging.h>
+#include <physical_memory.h>
 #include <kernel.h>
-#include <refcount.h>
+#include <page_refcount.h>
 
 #define PF_ERR_PRESENT       (1 << 0)  // Bit0：页存在位（0=页不存在，1=页存在但权限错误）
 #define PF_ERR_WRITE         (1 << 1)  // Bit1：写操作位（0=读/执行操作，1=写操作）

@@ -17,6 +17,7 @@
 
 #include "multiboot2.h"
 #include <printf.h>
+#include <physical_memory.h>
 /*  Check if MAGIC is valid and print the Multiboot information structure
    pointed by ADDR. */
 void
@@ -37,14 +38,17 @@ multiboot_info_process (unsigned long magic, unsigned long addr)
     }
 
   size = *(unsigned *) addr;
+  if (size < 16 || size > 0xffffffffU - addr) return;
+  reserve_boot_memory(addr, addr + size);
   ////printf ("Announced mbi size 0x%x\n", size);
   for (tag = (struct multiboot_tag *) (addr + 8);
-       tag->type != MULTIBOOT_TAG_TYPE_END;
+       (unsigned long)tag <= addr + size - 8 && tag->type != MULTIBOOT_TAG_TYPE_END;
        tag = (struct multiboot_tag *) ((multiboot_uint8_t *) tag 
                                        + ((tag->size + 7) & ~7)))
     {
 
       ////printf ("Tag 0x%x, Size 0x%x\n", tag->type, tag->size);
+      if (tag->size < 8 || tag->size > addr + size - (unsigned long)tag) return;
       switch (tag->type)
         {
         case MULTIBOOT_TAG_TYPE_CMDLINE:
@@ -56,6 +60,9 @@ multiboot_info_process (unsigned long magic, unsigned long addr)
           //         ((struct multiboot_tag_string *) tag)->string);
           break;
         case MULTIBOOT_TAG_TYPE_MODULE:
+          if (tag->size < sizeof(struct multiboot_tag_module)) return;
+          reserve_boot_memory(((struct multiboot_tag_module *)tag)->mod_start,
+                              ((struct multiboot_tag_module *)tag)->mod_end);
           // //printf ("Module at 0x%x-0x%x. Command line %s\n",
           //         ((struct multiboot_tag_module *) tag)->mod_start,
           //         ((struct multiboot_tag_module *) tag)->mod_end,
@@ -74,7 +81,7 @@ multiboot_info_process (unsigned long magic, unsigned long addr)
           break;
         case MULTIBOOT_TAG_TYPE_MMAP:
           {
-            setup_mmap(tag);
+            setup_mmap((struct multiboot_tag_mmap *)tag);
           }
           break;
 

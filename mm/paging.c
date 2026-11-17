@@ -1,11 +1,11 @@
 #include <stdint.h>
-#include <phy_mem.h>
+#include <physical_memory.h>
 #include <printf.h>
-#include <addr_translation.h>
-#include <section.h>
+#include <paging.h>
+#include <sections.h>
 #include <kernel.h>
 #include <memory.h>
-#include <refcount.h>
+#include <page_refcount.h>
 
 extern uint32_t page_directory_base[];
 
@@ -240,24 +240,29 @@ int copy_page_directory_range(page_directory_t *dst, page_directory_t *src, uint
     return 0;
 }
 
-void kernel_direct_map_init()
+/* A dedicated directory avoids overwriting boot text or active boot tables. */
+static page_directory_t kernel_directory __attribute__((aligned(4096)));
+static int paging_ready;
+
+int _init_paging(void)
 {
-    uint32_t count=DIRECT_MAP_SIZE>>12;
-    map_virtual_range_to_physical(_pdt,0xC0000000,0x0,count,PAGE_PRESENT|PAGE_WRITE);
-
-
-}
-
-void _init_paging()
-{
-
-    uint8_t*addr=(uint8_t*)(boot_kernel_start + KERNEL_VIRT_BASE);
-    uint16_t index=0;
-    MEM_ZERO(addr,PAGE_SIZE);
-    _pdt=(page_directory_t*)(boot_kernel_start+0xC0000000);
-
-    kernel_direct_map_init();
-    uint32_t phy_pdt=((uint32_t)_pdt)-0xC0000000;
-    __asm__("movl %%eax,%%cr3;"::"a"(phy_pdt));
-
+    uint32_t index, entry, physical;
+    if (paging_ready) return 0;
+    MEM_ZERO(&kernel_directory, sizeof(kernel_directory));
+    _pdt = &kernel_directory;
+    if (map_virtual_range_to_physical(_pdt, KERNEL_VIRT_BASE, 0,
+                                     DIRECT_MAP_SIZE >> 12, PAGE_PRESENT | PAGE_WRITE)) {
+        for (index = 0; index < PAGE_DIR_ENTRIES; index++) {
+            entry = kernel_directory.entries[index];
+            if (entry & PAGE_PRESENT) free_page(entry & ~4095U);
+            kernel_directory.entries[index] = 0;
+        }
+        _pdt = 0;
+        return -1;
+    }
+    physical = (uint32_t)&kernel_directory - KERNEL_VIRT_BASE;
+    __asm__ volatile("movl %0, %%cr3" :: "r"(physical) : "memory");
+    physical_memory_enable_direct_map();
+    paging_ready = 1;
+    return 0;
 }

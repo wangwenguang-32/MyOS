@@ -2,9 +2,7 @@
 #include<apic.h>
 #include<io.h>
 #include<cpu.h>
-#include<addr_translation.h>
-
-
+#include<paging.h>
 /* -------------------- MSR access -------------------- */
 static inline uint64_t rdmsr(uint32_t msr) {
     uint32_t lo, hi;
@@ -77,7 +75,7 @@ static void ioapic_set_redirect(uint8_t irq, uint8_t vector, uint8_t dest_apic_i
     if (active_low) low |= (1u << 13);
     if (level)      low |= (1u << 15);
     if (masked)     low |= (1u << 16);
-    low |= vector; 
+    low |= vector;
     uint32_t high = ((uint32_t)dest_apic_id) << 24;
 
     uint8_t reg = IOAPIC_REG_REDTBL + (uint8_t)(irq * 2);
@@ -106,7 +104,7 @@ void apic_init(uint8_t spurious_vector, uint8_t ext_irq_vector_base) {
     lapic_enable(spurious_vector);
     uint8_t lapic_id = (uint8_t)(lapic_read(LAPIC_ID) >> 24);
     ioapic_init_basic(ext_irq_vector_base, lapic_id);
-    
+
 }
 
 void lapic_eoi(void) {

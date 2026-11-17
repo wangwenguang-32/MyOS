@@ -1,6 +1,6 @@
-#include <refcount.h>
+#include <page_refcount.h>
 #include <stdint.h>
-#include <kmalloc.h>
+#include <heap.h>
 #include <printf.h>
 
 LIST_HEAD(phys_mem_count_head);

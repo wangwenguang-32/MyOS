@@ -1,11 +1,10 @@
 #include <stdint.h>
 #include <common.h>
 #include <ahci.h>
-#include <blk_dev.h>
-#include "blk_internal.h"
+#include <dma.h>
+#include <block_device.h>
+#include "block_internal.h"
 
-#define PAGE_OFFSET 0xC0000000U
-#define pa(address) ((uint32_t)(address) - PAGE_OFFSET)
 static blk_info_t blk_info;
 static uint8_t blk_initialized;
 
@@ -35,7 +34,11 @@ blk_cache_node_t* blk_cache_get(uint32_t lba) {
     node = blk_cache_find(lba);
     if (!node) {
         node = blk_cache_get_free();
-        if (!node || ahci_read_sector(lba, pa(node->data))) return NULL;
+        dma_addr_t handle;
+        if (!node || dma_map_buffer(node->data, BLK_SECTOR_SIZE, 0xffffffffU, &handle)) return NULL;
+        int result = ahci_read_sector(lba, handle);
+        dma_unmap_buffer(handle, BLK_SECTOR_SIZE);
+        if (result) return NULL;
         blk_cache_insert(node, lba);
     }
     node->ref_count++;
@@ -46,7 +49,11 @@ blk_cache_node_t* blk_cache_get(uint32_t lba) {
 int blk_writeback_sector(uint32_t lba, const uint8_t *data)
 {
     if (!blk_initialized || !data || lba >= blk_info.sectors) return -1;
-    return ahci_write_sector(lba, pa(data));
+    dma_addr_t handle;
+    if (dma_map_buffer(data, BLK_SECTOR_SIZE, 0xffffffffU, &handle)) return -1;
+    int result = ahci_write_sector(lba, handle);
+    dma_unmap_buffer(handle, BLK_SECTOR_SIZE);
+    return result;
 }
 
 static int blk_write_sector(uint32_t lba, const uint8_t *buffer)

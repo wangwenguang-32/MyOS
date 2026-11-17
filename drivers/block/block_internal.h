@@ -1,6 +1,6 @@
-#ifndef BLK_INTERNAL_H
-#define BLK_INTERNAL_H
-#include <blk_dev.h>
+#ifndef MYOS_BLOCK_INTERNAL_H
+#define MYOS_BLOCK_INTERNAL_H
+#include <block_device.h>
 int blk_cache_init(void);
 blk_cache_node_t *blk_cache_hash_find(uint32_t lba);
 blk_cache_node_t *blk_cache_find(uint32_t lba);

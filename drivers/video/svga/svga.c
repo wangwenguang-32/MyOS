@@ -4,8 +4,8 @@
 #include<printf.h>
 #include<io.h>
 #include<common.h>
-#include<iomap.h>
-#include<addr_translation.h>
+#include<io_mapping.h>
+#include<paging.h>
 
 SVGADevice svga;
 

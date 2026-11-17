@@ -1,5 +1,5 @@
-#ifndef BLK_DEV_H
-#define BLK_DEV_H
+#ifndef MYOS_BLOCK_DEVICE_H
+#define MYOS_BLOCK_DEVICE_H
 #include <stdint.h>
 #ifdef __cplusplus
 extern "C" {

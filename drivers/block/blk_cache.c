@@ -1,9 +1,9 @@
 #include<stdint.h>
 #include<printf.h>
-#include "blk_internal.h"
-#include <phy_mem.h>
+#include "block_internal.h"
+#include <physical_memory.h>
 #include<common.h>
-#include<blk_dev.h>
+#include<block_device.h>
 
 
 

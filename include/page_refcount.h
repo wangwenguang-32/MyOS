@@ -1,5 +1,5 @@
-#ifndef  REFCOUNT_H
-#define REFCOUNT_H
+#ifndef  MYOS_PAGE_REFCOUNT_H
+#define MYOS_PAGE_REFCOUNT_H
 
 #include<stdint.h>
 #include<list.h>

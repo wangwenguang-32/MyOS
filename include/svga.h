@@ -4,7 +4,7 @@
 #include<pci.h>
 #include<stdint.h>
 #include<common.h>
-#include<svga_reg.h>
+#include<svga_registers.h>
 
 typedef struct SVGADevice {
    PCIAddress pciAddr;

@@ -1,5 +1,5 @@
 #include <pid.h>
-#include <section.h>
+#include <sections.h>
 
 #define PID_BITMAP_WORD_BITS 32
 #define PID_RANGE            (PID_MAX - PID_MIN + 1)

@@ -1,5 +1,5 @@
-#ifndef  ADDR_TRANSLATION_H
-#define ADDR_TRANSLATION_H
+#ifndef  MYOS_PAGING_H
+#define MYOS_PAGING_H
 
 #include <stdint.h>
 #define PAGE_SIZE 4096           // 页大小：4096字节
@@ -49,7 +49,7 @@ int map_virtual_range_to_physical(page_directory_t*pdt,uint32_t virtual_addr,uin
 int set_virtual_range_readonly(page_directory_t *pdt, uint32_t start_vaddr, uint32_t size);
 int copy_page_directory_range(page_directory_t *dst, page_directory_t *src, uint32_t start_vaddr, uint32_t size);
 
-void _init_paging(void);
+int _init_paging(void);
 int unmap_virtual_address_range(page_directory_t *pdt, uint32_t address, uint32_t count);
 
 #endif

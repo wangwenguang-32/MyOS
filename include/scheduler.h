@@ -1,5 +1,5 @@
-#ifndef SCHEDULE_H
-#define SCHEDULE_H
+#ifndef MYOS_SCHEDULER_H
+#define MYOS_SCHEDULER_H
 
 #define save_com_regs()    \
 __asm__ __volatile__(  \

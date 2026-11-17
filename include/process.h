@@ -4,8 +4,8 @@
 
 #include<stdint.h>
 #include<list.h>
-#include<addr_translation.h>
-#include<virt_mem.h>
+#include<paging.h>
+#include<virtual_memory.h>
 
 #define move_to_user_mode() \
 __asm__ ("movl $0xC0000000,%%eax\n\t" \

@@ -24,13 +24,13 @@
  **********************************************************/
 
 /*
- * svga_reg.h --
+ * svga_registers.h --
  *
  *    Virtual hardware definitions for the VMware SVGA II device.
  */
 
-#ifndef _SVGA_REG_H_
-#define _SVGA_REG_H_
+#ifndef MYOS_SVGA_REGISTERS_H
+#define MYOS_SVGA_REGISTERS_H
 
 #include<stdint.h>
 /*

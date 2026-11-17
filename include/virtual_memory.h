@@ -1,9 +1,9 @@
-#ifndef  VIRT_MEM_H
-#define VIRT_MEM_H
+#ifndef  MYOS_VIRTUAL_MEMORY_H
+#define MYOS_VIRTUAL_MEMORY_H
 
 #include <stdint.h>
 #include <list.h>
-#include <addr_translation.h>
+#include <paging.h>
 #include <process.h>
 
 // VMA (Virtual Memory Area) 标志位

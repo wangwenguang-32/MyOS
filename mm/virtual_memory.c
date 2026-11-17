@@ -1,6 +1,6 @@
-#include <virt_mem.h>
-#include <phy_mem.h>
-#include <kmalloc.h>
+#include <virtual_memory.h>
+#include <physical_memory.h>
+#include <heap.h>
 #include <printf.h>
 #include <memory.h>
 #include <stdint.h>

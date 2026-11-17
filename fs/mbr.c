@@ -1,5 +1,5 @@
 #include <mbr.h>
-#include <blk_dev.h>
+#include <block_device.h>
 #include <stddef.h>
 
 part_t mbr_part[MBR_PARTITION_COUNT];

@@ -2,7 +2,7 @@
 #include<stdint.h>
 #include<rtc.h>
 #include<process.h>
-#include<schedule.h>
+#include<scheduler.h>
 
 static uint32_t lapic_timer_divisor_encode(uint32_t divisor) {
     switch (divisor) {
