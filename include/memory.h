@@ -13,4 +13,6 @@
     } while (0)
 
 
+void init_memory(void);
+
 #endif

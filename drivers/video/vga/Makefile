@@ -1,0 +1,1 @@
+obj-y += vga.o

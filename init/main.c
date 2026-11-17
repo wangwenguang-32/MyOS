@@ -10,21 +10,15 @@ void main(unsigned long *esp)
     multiboot_info_process(*(esp-2),*(esp-1));
     
     init_idt();
-    // acpi_init();
     init_memory();
     apic_init(0xFF,0x20);
-    
     keyboard_init();
-    svga_init();
-    // pcie_init();
-    // pci_scan_all();
-    blk_init();
-    mbr_init();
-    while(1);
-    disk_init();
-    tty_init();
+    // svga_init();
+    // blk_init();
+    // mbr_init();
+    // tty_init();
+    // while(1);
     init_task();
     lapic_timer_init_periodic(0x20, 0x10000,128);
     move_to_user_mode();
-    while(1);
 }

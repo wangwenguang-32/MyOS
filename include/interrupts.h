@@ -33,27 +33,9 @@ void keyboard_isr();
 void page_fault();
 void general_protection();
 void system_call();
-void context_switch();
+void timer_interrupt();
 void peserved_0();
 void about_double();
-
-void int_1();
-void int_2();
-void int_3();
-void int_4();
-void int_5();
-void int_6();
-void int_7();
-void int_A();
-void int_B();
-void int_C();
-void int_F();
-void int_10();
-void int_11();
-void int_12();
-void int_13();
-void int_14();
-void int_15();
 
 
 #endif

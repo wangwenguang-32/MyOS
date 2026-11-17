@@ -1,2 +1,1 @@
-obj-y +=  keyboard/ tty/ disk/  pci/ svga/
-obj-y += vga.o
+obj-y += bus/ block/ storage/ char/ input/ video/

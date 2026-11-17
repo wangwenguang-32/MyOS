@@ -37,6 +37,26 @@ typedef struct {
     char        fs_name[16];    // 文件系统名
 } part_t;
 
+#define MBR_PARTITION_COUNT 4U
+#define MBR_SIGNATURE 0xAA55U
+#define MBR_TYPE_GPT_PROTECTIVE 0xEEU
+#define MBR_ERR_NO_DEVICE -1
+#define MBR_ERR_IO -2
+#define MBR_ERR_SIGNATURE -3
+#define MBR_ERR_ENTRY -4
+#define MBR_ERR_RANGE -5
+#define MBR_ERR_OVERLAP -6
+
+/* Primary entries only; extended containers and GPT protection are not volumes.
+ * fs_name is a partition type label, not a verified filesystem identification.
+ * Initialization clears previous results and returns zero or a negative error.
+ * The index is the original zero-based table slot, not a compacted index.
+ */
+extern part_t mbr_part[MBR_PARTITION_COUNT];
+int mbr_init(void);
+uint32_t mbr_get_partition_count(void);
+const part_t *mbr_get_partition(uint32_t index);
+
 #define CHS_TO_LBA(C, H, S, HPC, SPT) \
     ((uint32_t)(((C) * (HPC) + (H)) * (SPT) + ((S) - 1)))
 

@@ -1,1 +1,0 @@
-obj-y += tty_queue.o tty.o console.o

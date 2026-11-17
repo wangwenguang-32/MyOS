@@ -18,7 +18,7 @@ struct page  {
 
 } ALIGNED(8);
 
-#define struct page page_t
+typedef struct page page_t;
 
 
 #endif

@@ -1,10 +1,10 @@
-#include<printf.h>
-#include<process.h>
-#include<stdint.h>
-#include<addr_translation.h>
-#include<phy_mem.h>
-#include<kernel.h>
-#include<refcount.h>
+#include <printf.h>
+#include <process.h>
+#include <stdint.h>
+#include <addr_translation.h>
+#include <phy_mem.h>
+#include <kernel.h>
+#include <refcount.h>
 
 #define PF_ERR_PRESENT       (1 << 0)  // Bit0：页存在位（0=页不存在，1=页存在但权限错误）
 #define PF_ERR_WRITE         (1 << 1)  // Bit1：写操作位（0=读/执行操作，1=写操作）
@@ -22,7 +22,7 @@ void copy_page(uint8_t*src_addr,uint8_t*dst_addr)
 }
 
 
-void handle_user_write_prot_fault(unsigned long fault_addr) 
+void handle_user_write_prot_fault(unsigned long fault_addr)
 {
     page_directory_t*pdt=current->mm->pgd;
     virtual_addr_t va;
@@ -46,7 +46,7 @@ void handle_user_write_prot_fault(unsigned long fault_addr)
             pdt->entries[va.page_dir_index]|=new_page_table_phys;
             pdt->entries[va.page_dir_index]|=PAGE_WRITE;
         }
-        
+
     }
 
     directory_entry=pdt->entries[va.page_dir_index];
@@ -69,13 +69,12 @@ void handle_user_write_prot_fault(unsigned long fault_addr)
             va(pt)->entries[va.page_table_index]|=new_addr_phys;
             va(pt)->entries[va.page_table_index]|=PAGE_WRITE;
         }
-        
+
     }
     __asm__ volatile("invlpg (%0);" ::"r"(fault_addr):"memory");
 
 
 }
-
 
 
 void do_page_fault(uint32_t error_code)
@@ -84,7 +83,7 @@ void do_page_fault(uint32_t error_code)
     while(1);
     uint32_t addr=0;
     __asm__("movl %%cr2,%%eax;":"=a"(addr) :);
-    printf("error code:0x%x   fault virt addr:0x%x\n",error_code,addr);
+    //printf("error code:0x%x   fault virt addr:0x%x\n",error_code,addr);
     if(error_code==(PF_ERR_USER | PF_ERR_WRITE | PF_ERR_PRESENT))
     {
         handle_user_write_prot_fault(addr);

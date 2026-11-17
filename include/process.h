@@ -14,7 +14,7 @@ __asm__ ("movl $0xC0000000,%%eax\n\t" \
 	"pushfl\n\t" \
 	"pushl $0x1B\n\t" \
 	"pushl $0x8048000\n\t" \
-	"iret\n" \
+	"iret\n\t" \
 	:::"ax")
 
 /* 任务状态 */
@@ -23,10 +23,8 @@ typedef enum {
 	TASK_NEW,
 	TASK_READY,
 	TASK_RUNNING,
-	TASK_SLEEPING,
-	TASK_BLOCKED,
-	TASK_STOPPED,
-	TASK_ZOMBIE
+	TASK_INTERRUPTIBLE,
+	TASK_UNINTERRUPTIBLE
 } task_state_t;
 
 /* 调度策略 */
@@ -107,6 +105,14 @@ struct tss_struct {
 	struct i387_struct i387;
 };
 
+typedef struct{
+  uint32_t edi;
+  uint32_t esi;
+  uint32_t ebx;
+  uint32_t ebp;
+  uint32_t eip;
+}task_context_t;
+
 
 typedef struct task_struct {
 	/* 标识 */
@@ -133,12 +139,16 @@ typedef struct task_struct {
 	list_node_t    block_node;         /* 等待队列节点 */
 	list_node_t    sleep_node;         /*睡眠队列节点*/
 
+	uint32_t       sleep_ticks;
+
 	/* 亲和性与负载均衡 */
 	cpu_affinity_t affinity;
 	uint8_t        on_cpu;            /* 正在哪个 CPU 上运行（逻辑 ID） */
 
 	/* 栈 */
-	kernel_stack_t  ks;               /* 进出调度器保存/恢复 */
+	// kernel_stack_t  ks;               /* 进出调度器保存/恢复 */
+
+	task_context_t* context;
 
 	/* 地址空间/内存管理 */
 	struct mm_struct *mm;             /* 进程地址空间（线程共享） */
@@ -161,7 +171,7 @@ typedef struct task_struct {
 } task_t;
 
 
-task_t* current;
+extern task_t* current;
 
 extern struct  list_head ready_task_head;
 extern struct  list_head all_task_head;

@@ -1,1 +1,0 @@
-obj-y += blk_dev.o ahci.o

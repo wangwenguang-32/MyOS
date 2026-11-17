@@ -99,7 +99,7 @@ void apic_init(uint8_t spurious_vector, uint8_t ext_irq_vector_base) {
     map_virtual_to_physical(_pdt,0xFEE00000u,0xFEE00000u,3u);
     map_virtual_to_physical(_pdt,0xFEC00000u,0xFEC00000u,3u);
     if (!cpu_has_apic()) {
-        printf("system has no apic");
+        //printf("system has no apic");
         return;
     }
     pic_disable();

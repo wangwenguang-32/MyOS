@@ -1,0 +1,29 @@
+# Kernel source layout
+
+- core/: exported linker symbol addresses.
+- process/: task initialization, fork, PID allocation and initial user task.
+- sched/: scheduler and assembly context switch.
+- interrupt/: IDT setup and interrupt entry assembly.
+- syscall/: syscall entry and dispatch table.
+- fault/: processor exception handlers.
+- logging/: formatted output and early serial diagnostics.
+- memory/: physical-page reference tracking used by COW.
+
+Public headers and exported assembly symbols retain their established names.
+link.lds remains at the kernel root because the recursive linker runs there.
+trap.c is an empty legacy file excluded from the build.
+Serial remains an early diagnostic backend; a future general UART driver belongs
+in drivers/char/serial/.
+
+Current limitations: scheduler/context switch and fork stack layout require boot
+validation. fork still relies on a fixed saved-register offset; partial mm_copy
+failure cleanup and COW lifetime management need further work. The page fault
+handler currently halts before COW recovery; this behavior is retained rather
+than enabling an unverified recovery path. PID and page references require
+serialized calls; SMP synchronization is not implemented.
+
+Syscall numbers remain 0..4; unsupported entries return -38. Entry assembly
+checks the table bounds and preserves the handler return value. The table size
+must be updated together with syscall_entry.S.
+
+No compilation or boot tests were performed for this reorganization.

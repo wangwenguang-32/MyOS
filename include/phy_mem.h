@@ -14,8 +14,8 @@
 
 struct memory_region   //memory_region
 {
-    unsigned long base_addr;
-    unsigned long length;
+    uint64_t base_addr;
+    uint64_t length;
     unsigned int type;
 };
 
@@ -31,8 +31,8 @@ static inline const char* addr_range_type_str(unsigned type) {
     }
 }
 
-#define PAGE_ALIGN_DOWN(addr) (addr & ~0xFFF)
-#define PAGE_ALIGN_UP(addr)   ((addr + 0xFFF) & ~0xFFF)
+#define PAGE_ALIGN_DOWN(addr) ((addr) & ~0xFFFU)
+#define PAGE_ALIGN_UP(addr)   (((addr) + 0xFFFU) & ~0xFFFU)
 
 uint32_t alloc_page();
 void free_page(uint32_t addr);
@@ -40,6 +40,8 @@ void free_page(uint32_t addr);
 uint32_t alloc_pages(uint32_t count);
 void free_pages(uint32_t start_addr, uint32_t count);
 
-void _init_p_mem();
+struct multiboot_tag_mmap;
+void setup_mmap(struct multiboot_tag_mmap *tag);
+void _init_phy_mem(void);
 
 #endif

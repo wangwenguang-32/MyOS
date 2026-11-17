@@ -12,7 +12,7 @@ typedef struct  {
 void insert_count_node(uint32_t addr);
 uint8_t add_count(uint32_t addr);
 uint8_t del_count(uint32_t addr);
-uint8_t get_count(uint32_t addr);
+uint32_t get_count(uint32_t addr);
 
 
 #endif

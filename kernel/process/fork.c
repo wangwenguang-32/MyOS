@@ -1,0 +1,80 @@
+#include <printf.h>
+#include <stdint.h>
+#include <phy_mem.h>
+#include <process.h>
+#include <pid.h>
+#include <kmalloc.h>
+#include <virt_mem.h>
+#include <kernel.h>
+#include <common.h>
+
+static uint32_t copy_content(void)
+{
+    uint32_t physical = alloc_page();
+    if (!physical) return 0;
+    uint32_t*new_task=(uint32_t*)(physical+PAGE_OFFSET);
+    uint32_t*current_task=current;
+    loop(1024)
+    {
+        *(new_task+i)=*(current_task+i);
+    }
+
+    return (uint32_t)new_task;
+
+}
+
+static uint32_t copy_page_directory_table(void)
+{
+    page_directory_t*p_pgd=(page_directory_t*)alloc_page();
+    if (!p_pgd) return 0;
+    page_directory_t*v_pgd=(page_directory_t *)((uint32_t)p_pgd+PAGE_OFFSET);
+    for (uint32_t i = 0; i < PAGE_DIR_ENTRIES; i++) v_pgd->entries[i] = 0;
+    ////printf("%x\n",current->mm->pgd);
+    uint32_t index=PAGE_OFFSET>>22;
+    for(index;index<PAGE_DIR_ENTRIES;index++)
+    {
+        v_pgd->entries[index]=current->mm->pgd->entries[index];
+    }
+
+    return (uint32_t)v_pgd;
+}
+
+int do_fork(void)
+{
+    task_t*new_task=(task_t*)copy_content();
+    if (!new_task) return -1;
+    page_directory_t*pgd= (page_directory_t*)copy_page_directory_table();
+
+    if (!pgd) { free_page((uint32_t)new_task - PAGE_OFFSET); return -1; }
+    new_task->pid=pid_alloc();
+    if (new_task->pid == PID_INVALID) {
+        free_page((uint32_t)pgd - PAGE_OFFSET);
+        free_page((uint32_t)new_task - PAGE_OFFSET);
+        return -1;
+    }
+    new_task->ppid=current->pid;
+    new_task->state=TASK_READY;
+    new_task->mm=(mm_struct_t*)kmalloc(sizeof(mm_struct_t));
+    if (!new_task->mm) {
+        pid_free(new_task->pid);
+        free_page((uint32_t)pgd - PAGE_OFFSET);
+        free_page((uint32_t)new_task - PAGE_OFFSET);
+        return -1;
+    }
+    *new_task->mm = *current->mm;
+    new_task->on_cpu=0;
+    new_task->time_slice=PROCESS_TIME_SLICE;
+    new_task->mm->pgd=pgd;
+
+    ((uint32_t*)new_task)[1018]=0;
+
+    INIT_LIST_HEAD(&new_task->mm->vm_area_list);
+    mm_copy(new_task->mm,current->mm);
+
+
+    list_add_tail(&new_task->all_tasks_node,&all_task_head);
+    list_add_tail(&new_task->ready_node,&ready_task_head);
+
+
+    return new_task->pid;
+}

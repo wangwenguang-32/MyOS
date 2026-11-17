@@ -1,1 +1,1 @@
-obj-y += phy_mem.o add_translation.o kmalloc.o memory.o page.o virt_mem.o
+obj-y += physical_memory.o paging.o heap.o memory_init.o virtual_memory.o io_mapping.o

@@ -9,8 +9,10 @@
 typedef struct SVGADevice {
    PCIAddress pciAddr;
    uint32_t     ioBase;
-   uint32_t    *fifoMem;
-   uint8_t     *fbMem;
+   uint32_t*    fifoMem;
+   uint32_t*    pfifoMem;
+   uint8_t*     fbMem;
+   uint8_t*     pfbMem;
    uint32_t     fifoSize;
    uint32_t     fbSize;
    uint32_t     vramSize;

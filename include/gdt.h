@@ -52,9 +52,9 @@
 
 
 #define SEG_KERNEL_CODE    0x08
-#define SEG_KERNEL_DATA     0x10
-#define SEG_USER_CODE        0x1B
-#define SEG_USER_DATA         0x23
+#define SEG_KERNEL_DATA    0x10
+#define SEG_USER_CODE      0x1B
+#define SEG_USER_DATA      0x23
 
 
 #endif

@@ -2,6 +2,7 @@
 #include<stdint.h>
 #include<rtc.h>
 #include<process.h>
+#include<schedule.h>
 
 static uint32_t lapic_timer_divisor_encode(uint32_t divisor) {
     switch (divisor) {
@@ -93,18 +94,20 @@ uint32_t lapic_timer_calibrate_frequency(uint32_t divisor) {
 
 
 /* 定时器中断处理函数 */
-uint32_t timer_interrupt_handler(void)
+void timer_interrupt_handler(void)
 {
     lapic_eoi();
-    if ( current->time_slice > 0) {
+    if ( current->time_slice > 0) 
+    {
         current->time_slice--;
-        return 1;
+        return;
     }
 
     if(list_empty(&ready_task_head))
     {
         current->time_slice=PROCESS_TIME_SLICE;
-        return 1;
+        return;
     }
+    schedule();
     return 0;
 }

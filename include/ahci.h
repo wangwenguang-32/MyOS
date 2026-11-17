@@ -24,11 +24,12 @@ typedef struct AhciPort {
 } AhciPort;
 
 /* AHCI 设备结构体 */
-typedef struct AhciController {
+typedef struct AhciController 
+{
 	PCIAddress addr;
 
-	uintptr_t mmio_va;  /* 虚拟地址 */
 	uint32_t  mmio_pa;  /* 物理地址 */
+	uint32_t  mmio_size;
 
 	/*所有 SATA 端口 */
 	uint8_t  port_cnt;

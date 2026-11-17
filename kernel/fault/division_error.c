@@ -1,8 +1,8 @@
-#include<printf.h>
-#include<process.h>
-#include<stdint.h>
+#include <printf.h>
+#include <process.h>
+#include <stdint.h>
 void do_division_error()
 {
-        printf("aaa\n");
+        //printf("aaa\n");
         while(1);
 }

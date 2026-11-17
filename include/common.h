@@ -17,4 +17,20 @@
 #define offsetof(type,member)   ((uint32_t)(&(((type*)0)->member)))
 
 
+static void memcpy(uint8_t*dst,uint8_t*src,uint32_t size)
+{
+    loop(size)
+    {
+        *(dst+i)=*(src+i);
+    }
+}
+
+static void memzero(uint8_t*src,uint32_t size)
+{
+    loop(size)
+    {
+        *(src+i)=0;
+    }
+}
+
 #endif

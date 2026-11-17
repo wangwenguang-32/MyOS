@@ -1,5 +1,5 @@
 #include "ext2.h"
-#include "disk.h"
+#include "blk_dev.h"
 #include "kmalloc.h"
 #include "printf.h"
 #include "string.h"
@@ -44,7 +44,7 @@ static uint32_t ext2_get_block_group(uint32_t block_num) {
 static int ext2_read_block(uint32_t block_num, uint8_t *buffer) {
     uint32_t lba = g_ext2_start_lba + (block_num * g_ext2_fs.block_size) / 512;
     uint32_t sectors = g_ext2_fs.block_size / 512;
-    return disk_read_multiple(lba, buffer, sectors);
+    return blk_read(lba, buffer, sectors);
 }
 
 /**
@@ -53,7 +53,7 @@ static int ext2_read_block(uint32_t block_num, uint8_t *buffer) {
 static int ext2_write_block(uint32_t block_num, uint8_t *buffer) {
     uint32_t lba = g_ext2_start_lba + (block_num * g_ext2_fs.block_size) / 512;
     uint32_t sectors = g_ext2_fs.block_size / 512;
-    return disk_write_multiple(lba, buffer, sectors);
+    return blk_write(lba, buffer, sectors);
 }
 
 /**
@@ -745,18 +745,18 @@ ext2_fs_t* ext2_get_fs(void) {
 
 void ext2_print_info(void) {
     if (!g_ext2_initialized) {
-        printf("EXT2 filesystem not initialized\n");
+        //printf("EXT2 filesystem not initialized\n");
         return;
     }
 
-    printf("=== EXT2 Filesystem Info ===\n");
-    printf("Block size: %u bytes\n", g_ext2_fs.block_size);
-    printf("Inode size: %u bytes\n", g_ext2_fs.inode_size);
-    printf("Total blocks: %u\n", g_ext2_fs.superblock->blocks_count);
-    printf("Free blocks: %u\n", g_ext2_fs.superblock->free_blocks_count);
-    printf("Total inodes: %u\n", g_ext2_fs.superblock->inodes_count);
-    printf("Free inodes: %u\n", g_ext2_fs.superblock->free_inodes_count);
-    printf("Block groups: %u\n", g_ext2_fs.groups_count);
-    printf("Blocks per group: %u\n", g_ext2_fs.blocks_per_group);
-    printf("Inodes per group: %u\n", g_ext2_fs.inodes_per_group);
+    //printf("=== EXT2 Filesystem Info ===\n");
+    //printf("Block size: %u bytes\n", g_ext2_fs.block_size);
+    //printf("Inode size: %u bytes\n", g_ext2_fs.inode_size);
+    //printf("Total blocks: %u\n", g_ext2_fs.superblock->blocks_count);
+    //printf("Free blocks: %u\n", g_ext2_fs.superblock->free_blocks_count);
+    //printf("Total inodes: %u\n", g_ext2_fs.superblock->inodes_count);
+    //printf("Free inodes: %u\n", g_ext2_fs.superblock->free_inodes_count);
+    //printf("Block groups: %u\n", g_ext2_fs.groups_count);
+    //printf("Blocks per group: %u\n", g_ext2_fs.blocks_per_group);
+    //printf("Inodes per group: %u\n", g_ext2_fs.inodes_per_group);
 }
