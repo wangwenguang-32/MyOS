@@ -1,141 +1,98 @@
-#include<vga.h>
-#include<stdint.h>
-#include<io.h>
-#include<tty.h>
+#include <vga.h>
+#include <io.h>
+#include <mm_lock.h>
 
+#define CRTC_INDEX 0x3d4
+#define CRTC_DATA  0x3d5
+uint32_t xpos, ypos;
+volatile uint8_t *video = (volatile uint8_t *)VIDEO;
 
-
-uint32_t xpos=0;
-uint32_t ypos=0;
-volatile uint8_t *video = VIDEO;
-
-void vga_scroll_up()
+static uint8_t crtc_read(uint8_t index)
 {
-    uint16_t y=0;
-    uint16_t*buffer=(uint16_t*)VIDEO;
-    for(y;y<LINES-1;y++)
-    {
-        for(uint16_t x = 0;x<COLUMNS;x++)
-        {
-            
-            buffer[x+y*COLUMNS]=buffer[x+(y+1)*COLUMNS];
-        }
+    outb(CRTC_INDEX, index);
+    return inb(CRTC_DATA);
+}
+static void crtc_write(uint8_t index, uint8_t value)
+{
+    outb(CRTC_INDEX, index);
+    outb(CRTC_DATA, value);
+}
+
+void cursor_set_pos(uint8_t row, uint8_t col)
+{
+    uint32_t flags = mm_irq_save();
+    uint16_t position;
+    if (row >= LINES) row = LINES - 1;
+    if (col >= COLUMNS) col = COLUMNS - 1;
+    position = row * COLUMNS + col;
+    crtc_write(CURSOR_POS_LOW, position & 255);
+    crtc_write(CURSOR_POS_HIGH, position >> 8);
+    mm_irq_restore(flags);
+}
+
+void cursor_get_pos(uint8_t *row, uint8_t *col)
+{
+    uint32_t flags = mm_irq_save();
+    uint16_t position = crtc_read(CURSOR_POS_LOW);
+    position |= (uint16_t)crtc_read(CURSOR_POS_HIGH) << 8;
+    if (row) *row = position / COLUMNS;
+    if (col) *col = position % COLUMNS;
+    mm_irq_restore(flags);
+}
+
+void cursor_enable(void)
+{
+    uint32_t flags = mm_irq_save();
+    uint8_t last_scanline = crtc_read(0x09) & 0x1f;
+    uint8_t start = last_scanline ? last_scanline - 1 : 0;
+    /* Clear cursor-disable bit; preserve unrelated CRTC control bits. */
+    crtc_write(0x0a, (crtc_read(0x0a) & 0xc0) | start);
+    crtc_write(0x0b, (crtc_read(0x0b) & 0xe0) | last_scanline);
+    cursor_set_pos(ypos, xpos);
+    mm_irq_restore(flags);
+}
+
+void vga_scroll_up(void)
+{
+    volatile uint16_t *cells = (volatile uint16_t *)VIDEO;
+    uint32_t flags = mm_irq_save(), i;
+    for (i = 0; i < (LINES - 1) * COLUMNS; i++) cells[i] = cells[i + COLUMNS];
+    for (; i < LINES * COLUMNS; i++) cells[i] = (ATTRIBUTE << 8) | ' ';
+    mm_irq_restore(flags);
+}
+
+void vga_clear(void)
+{
+    uint32_t flags = mm_irq_save(), i;
+    volatile uint16_t *cells = (volatile uint16_t *)VIDEO;
+    for (i = 0; i < LINES * COLUMNS; i++) cells[i] = (ATTRIBUTE << 8) | ' ';
+    xpos = ypos = 0;
+    cursor_enable();
+    mm_irq_restore(flags);
+}
+
+void vga_putchar(uint8_t c)
+{
+    uint32_t flags = mm_irq_save();
+    if (c == '\r') xpos = 0;
+    else if (c == '\n') { xpos = 0; ypos++; }
+    else if (c == '\b') { if (xpos) xpos--; }
+    else if (c == '\t') {
+        uint32_t spaces = 8 - (xpos & 7);
+        while (spaces--) vga_putchar(' ');
+    } else if (c >= 32 && c != 127) {
+        video[(xpos + ypos * COLUMNS) * 2] = c;
+        video[(xpos + ypos * COLUMNS) * 2 + 1] = ATTRIBUTE;
+        if (++xpos >= COLUMNS) { xpos = 0; ypos++; }
     }
-    for(uint16_t x=0;x<COLUMNS;x++)
-    {
-        buffer[x+y*COLUMNS]=0x0720;
-    }
-
+    if (ypos >= LINES) { vga_scroll_up(); ypos = LINES - 1; }
+    cursor_set_pos(ypos, xpos);
+    mm_irq_restore(flags);
 }
 
-void cursor_set_pos(uint8_t row, uint8_t col) 
+void vga_write(tty_t *terminal)
 {
-    uint16_t pos = (uint16_t)row * COLUMNS + (uint16_t)col;
-    
-    outb(0x3D4, CURSOR_POS_LOW);
-    outb(0x3D5, (uint8_t)(pos & 0xFF));
-    
-    outb(0x3D4, CURSOR_POS_HIGH);
-    outb(0x3D5, (uint8_t)(pos >> 8));
-}
-
-void cursor_get_pos(uint8_t *row, uint8_t *col) 
-{
-    uint16_t pos = 0;
-    
-    outb(0x3D4, CURSOR_POS_LOW);
-    pos |= inb(0x3D5);
-    outb(0x3D4, CURSOR_POS_HIGH);
-    pos |= (uint16_t)inb(0x3D5) << 8;
-    
-    *row = pos / COLUMNS;
-    *col = pos % COLUMNS;
-}
-
-void cursor_enable() 
-{
-    uint8_t cursor_start = 0x0E;
-    uint8_t cursor_end   = 0x0F;
-
-    outb(0x3D4, 0x0A);
-    outb(0x3D5, cursor_start & 0x1F);
-
-    // 写入 CRTC 0x0B = 光标结束
-    outb(0x3D4, 0x0B);
-    outb(0x3D5, cursor_end);
-    inb(0x3DA);  
-
-    // 2. 打开闪烁
-    uint8_t data = inb(0x3D8);  // 读
-    data |= (1 << 5);          // 开启闪烁
-    outb(0x3D8, data);         // 写回
-
-}
-
-
-void vga_write(tty_t* tty)
-{
-    uint8_t c;
-    while (!EMPTY(&tty->write))
-    {
-        GETCH_HEAD(&tty->write,&c);
-        if(c>=32&&c<=126)
-        {
-            *(video + (xpos+ ypos*COLUMNS)*2) = c&0xFF;
-            *(video + (xpos+ ypos*COLUMNS)*2 + 1) = ATTRIBUTE;
-
-            xpos++;
-            if(xpos==COLUMNS)
-            {
-                xpos=0;
-                if(ypos==LINES-1)
-                {
-                    vga_scroll_up();
-                }
-                else
-                {
-                    ypos++;
-                }
-            }
-        }
-        else
-        {
-            switch (c) 
-            {
-                case '\n':
-                {
-                    xpos=0;
-                    if(ypos==LINES-1)
-                    {
-                        vga_scroll_up();
-                    }
-                    else
-                    {
-                        ypos++;
-                    }
-                    break;
-                }
-                
-        
-                case '\r':
-                {
-                    xpos=0;
-                    break;
-                }
-        
-                case '\b':
-                {
-                    if (xpos > 0) 
-                    {
-                        xpos--;
-                    }
-                    break;
-                }
-            }
-
-        }
-        cursor_set_pos(ypos,xpos);
-    }
-    
-    
+    int8_t c;
+    if (!terminal) return;
+    while (!dequeue_head(&terminal->write, &c)) vga_putchar((uint8_t)c);
 }

@@ -3,18 +3,7 @@
 
 
 /*  Clear the screen and initialize VIDEO, XPOS and YPOS. */
- void cls (void)
-{
-  int i;
-
-  video = (unsigned char *) VIDEO;
-
-  for (i = 0; i < COLUMNS * LINES * 2; i++)
-    *(video + i) = 0;
-
-  xpos = 0;
-  ypos = 0;
-}
+void cls(void) { vga_clear(); }
 
 /*  Convert the integer D to a string and save the string in BUF. If
    BASE is equal to ’d’, interpret that D is decimal, and if BASE is
@@ -63,26 +52,7 @@ itoa (char *buf, int base, int d)
 }
 
 /*  Put the character C on the screen. */
- void
-putchar (int c)
-{
-  if (c == '\n' || c == '\r')
-    {
-    newline:
-      xpos = 0;
-      ypos++;
-      if (ypos >= LINES)
-        ypos = 0;
-      return;
-    }
-
-  *(video + (xpos + ypos * COLUMNS) * 2) = c & 0xFF;
-  *(video + (xpos + ypos * COLUMNS) * 2 + 1) = ATTRIBUTE;
-
-  xpos++;
-  if (xpos >= COLUMNS)
-    goto newline;
-}
+void putchar(int c) { vga_putchar((uint8_t)c); }
 
 /*  Format a string and print it on the screen, just like the libc
    function printf. */

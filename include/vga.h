@@ -18,6 +18,12 @@ extern volatile unsigned char *video;
 #define CURSOR_POS_HIGH 0x0E  // 光标位置高8位
 #define CURSOR_CTRL     0x0A  // 光标控制（显隐/闪烁）
 
+void cursor_set_pos(uint8_t row, uint8_t col);
+void cursor_get_pos(uint8_t *row, uint8_t *col);
+void cursor_enable(void);
+void vga_scroll_up(void);
+void vga_clear(void);
+void vga_putchar(uint8_t c);
 void vga_write(tty_t* tty);
 
 
