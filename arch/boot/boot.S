@@ -25,7 +25,7 @@
 # define EXT_C(sym)                     sym
 #endif
 
-.global _start  , page_directory_base
+.global _start, multiboot_entry, page_directory_base
 /*  The size of our stack (16KB). */
 #define STACK_SIZE                      0x4000
 .section .boot.text
@@ -58,82 +58,79 @@ end_tag_start:
 end_tag_end:
 multiboot_header_end:
 multiboot_entry:
-        /*  Initialize the stack pointer. */
-        movl    $(stack + STACK_SIZE), %esp
-        pushl %ebx
-        pushl %eax
-
-        /*  Reset EFLAGS. */
-        pushl   $0
-        popf
-
+        cli
+        cld
+        movl $(stack + STACK_SIZE), %esp
+        xorl %ebp, %ebp
+        # Preserve Multiboot registers across C bootstrap helpers.
+        movl %eax, %edi
+        movl %ebx, %ebp
+        cmpl $MULTIBOOT2_BOOTLOADER_MAGIC, %edi
+        jne boot_halt
         call _init_gdt
-
-        subl $0x6,%esp
-        movl $_gdt,2(%esp)
-        movw _gdt_limit,%cx
-        movw %cx,(%esp)
-        lgdt (%esp)
-        addl $0x6,%esp
-        
-        movw $0x28,%ax
-        ltr %ax
-
-
-        pushl $0x08
-        pushl  $_after
-        retf
-
-
-_after:
-        movw $0x10,%cx
-        movw %cx,%es
-        movw %cx,%ss
-        movw %cx,%fs
-        movw %cx,%gs
-        movw %cx,%ds
-
-        subl $0x6,%esp
-        movl $_idt, %esi
-        addl $0xC0000000, %esi
-        movl %esi,2(%esp)
-        movl $_idt_limit, %esi
-        subl $0xC0000000, %esi
-        movl (%esi),%ecx
-        movw %cx,(%esp)
-        lidt (%esp)
-        addl $0x6,%esp
-        
-
-
-
+        lgdt boot_gdtr
+        ljmp $0x08, $boot_segments
+boot_segments:
+        movw $0x10, %ax
+        movw %ax, %ds
+        movw %ax, %es
+        movw %ax, %ss
+        movw %ax, %fs
+        movw %ax, %gs
+        # i386 cdecl: align stack before calling the bootstrap helper.
+        subl $8, %esp
         pushl $page_table_base
         pushl $page_directory_base
         call _init_pgtable
+        addl $16, %esp
+        movl $page_directory_base, %eax
+        movl %eax, %cr3
+        movl %cr0, %eax
+        orl $0x80000000, %eax
+        movl %eax, %cr0
+        movl $boot_high_entry, %eax
+        jmp *%eax
+boot_halt:
+        cli
+        hlt
+        jmp boot_halt
 
-        movl $page_directory_base ,%eax
-        movl %eax,%cr3
+.section .text
+boot_high_entry:
+        # All kernel C code starts with a high virtual stack, never changes ESP in C.
+        movl $(stack + STACK_SIZE + 0xC0000000), %esp
+        lgdt kernel_gdtr
+        # Explicitly clear kernel BSS before accessing global initialization state.
+        movl %edi, %esi
+        movl $_bss_start, %edi
+        movl $_bss_end, %ecx
+        subl %edi, %ecx
+        xorl %eax, %eax
+        rep stosb
+        movl %esi, %edi
+        lidt kernel_idtr
+        movw $0x28, %ax
+        ltr %ax
+        # void main(uint32_t magic, uint32_t boot_info_physical)
+        subl $8, %esp
+        pushl %ebp
+        pushl %edi
+        xorl %ebp, %ebp
+        call main
+        cli
+1:      hlt
+        jmp 1b
 
-        movl %cr0,%eax
-        orl $0x80000000,%eax
-        movl %eax,%cr0
-
-        subl $0x6,%esp
-        movl $_gdt,%esi
-        addl $0xC0000000,%esi
-        movl %esi,2(%esp)
-        movw _gdt_limit,%cx
-        movw %cx,(%esp)
-        lgdt (%esp)
-        addl $0x6,%esp
-        
-
-        pushl $(stack + STACK_SIZE)
-        pushl $main
-        ret
-
-loop:   hlt
-        jmp     loop
+.section .boot.data
+boot_gdtr:
+        .word 6 * 8 - 1
+        .long _gdt
+kernel_gdtr:
+        .word 6 * 8 - 1
+        .long _gdt + 0xC0000000
+kernel_idtr:
+        .word 256 * 8 - 1
+        .long _idt + 0xC0000000
         /*  Our stack area. */
 .section .boot.data
         .align 16

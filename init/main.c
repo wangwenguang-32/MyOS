@@ -1,29 +1,44 @@
-#include<printf.h>
-#include<apic.h>
-#include<keyboard.h>
-#include<process.h>
+#include <stdint.h>
+#include <printf.h>
+#include <apic.h>
+#include <keyboard.h>
+#include <tty.h>
 #include <memory.h>
+#include <multiboot2.h>
+#include <direct_map.h>
+#include <interrupts.h>
 
-void main(unsigned long *esp)
+extern void multiboot_info_process(unsigned long magic, unsigned long address);
+
+static void boot_failure(const char *stage)
 {
-    asm("addl $0xC0000000,%esp;");
+    printf("Boot failed: %s\n", stage);
+    for (;;) __asm__ volatile("cli; hlt" ::: "memory");
+}
+
+void main(uint32_t magic, uint32_t boot_info_physical)
+{
+    __asm__ volatile("cli" ::: "memory");
     cls();
-    multiboot_info_process(*(esp-2),*(esp-1));
-    
     init_idt();
-    int memory_error = init_memory();
-    if (memory_error) {
-        printf("Memory initialization failed: %d\n", memory_error);
-        for (;;) __asm__ volatile("cli; hlt");
+    if (magic != MULTIBOOT2_BOOTLOADER_MAGIC || (boot_info_physical & 7U) ||
+        !direct_map_contains_physical(boot_info_physical, 8))
+        boot_failure("invalid Multiboot2 information");
+    uint32_t *info = direct_map_pointer(boot_info_physical);
+    if (info[0] < 16 || !direct_map_contains_physical(boot_info_physical, info[0]))
+        boot_failure("Multiboot2 information outside bootstrap mapping");
+    /* Pass the physical resource address; the parser uses its high alias. */
+    multiboot_info_process(magic, boot_info_physical);
+    int result = init_memory();
+    if (result) {
+        printf("Memory initialization error: %d\n", result);
+        boot_failure("memory initialization");
     }
-    apic_init(0xFF,0x20);
+    tty_init();
+    apic_init(0xFF, 0x20);
     keyboard_init();
-    // svga_init();
-    // blk_init();
-    // mbr_init();
-    // tty_init();
-    while(1);
-    init_task();
-    lapic_timer_init_periodic(0x20, 0x10000,128);
-    move_to_user_mode();
+    printf("Kernel initialized; waiting for interrupts.\n");
+    /* Temporary boot idle loop. No task exists yet; do not start scheduling
+     * until task0 has a dedicated idle stack and a valid initial context. */
+    for (;;) __asm__ volatile("sti; hlt" ::: "memory");
 }

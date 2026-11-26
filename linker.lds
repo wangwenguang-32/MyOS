@@ -1,3 +1,4 @@
+ENTRY(multiboot_entry)
 SECTIONS {
     . = 0x100000;
     _boot_start = .;
@@ -25,7 +26,7 @@ SECTIONS {
     }
     .rodata : { *(.rodata) }
     .data : { *(.data) }
-    .bss : { *(.bss) }
+    .bss : { _bss_start = .; *(.bss .bss.*) *(COMMON) _bss_end = .; }
     . = ALIGN(4096);
     _kernel_end = . ;
 }

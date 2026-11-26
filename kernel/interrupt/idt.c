@@ -51,5 +51,5 @@ void init_idt()
     _set_idt_entry(0x21,SEG_KERNEL_CODE,keyboard_isr,0);
     _set_idt_entry(0x80,SEG_KERNEL_CODE,system_call,3);
 
-    sti();
+    /* The boot caller enables interrupts after all handlers are ready. */
 }

@@ -18,6 +18,7 @@
 #include "multiboot2.h"
 #include <printf.h>
 #include <physical_memory.h>
+#include <direct_map.h>
 /*  Check if MAGIC is valid and print the Multiboot information structure
    pointed by ADDR. */
 void
@@ -37,9 +38,12 @@ multiboot_info_process (unsigned long magic, unsigned long addr)
       return;
     }
 
+  unsigned long physical_addr = addr;
+  if (!direct_map_contains_physical(addr, 8)) return;
+  addr = (unsigned long)direct_map_pointer(addr);
   size = *(unsigned *) addr;
-  if (size < 16 || size > 0xffffffffU - addr) return;
-  reserve_boot_memory(addr, addr + size);
+  if (size < 16 || !direct_map_contains_physical(physical_addr, size)) return;
+  reserve_boot_memory(physical_addr, physical_addr + size);
   ////printf ("Announced mbi size 0x%x\n", size);
   for (tag = (struct multiboot_tag *) (addr + 8);
        (unsigned long)tag <= addr + size - 8 && tag->type != MULTIBOOT_TAG_TYPE_END;
