@@ -5,7 +5,7 @@
 tty_t tty;
 
 // 空字符/无意义字符（ASCII 0）
-static void ctrl_null(tty_t *tty, int8_t c) 
+static void ctrl_null(tty_t *tty, int8_t c)
 {
     // 可忽略，或作为 Break 条件处理（参考之前的 BRKINT 逻辑）
     if (I_BRKINT(tty)) {
@@ -14,7 +14,7 @@ static void ctrl_null(tty_t *tty, int8_t c)
 }
 
 // 光标移动（Ctrl+A/B/E/F：ASCII 1/2/5/6）
-static void ctrl_cursor_move(tty_t *tty, int8_t c) 
+static void ctrl_cursor_move(tty_t *tty, int8_t c)
 {
     switch (c) {
         case 0x01: // Ctrl+A：光标移到行首
@@ -44,7 +44,7 @@ static void ctrl_cursor_move(tty_t *tty, int8_t c)
 }
 
 // 信号触发（Ctrl+C/Z/\：ASCII 3/26/28）
-static void ctrl_signal(tty_t *tty, int8_t c) 
+static void ctrl_signal(tty_t *tty, int8_t c)
 {
     if (!L_ISIG(tty)) return; // 需启用 ISIG 标志
 
@@ -62,9 +62,9 @@ static void ctrl_signal(tty_t *tty, int8_t c)
 }
 
 // EOF（Ctrl+D：ASCII 4）
-static void ctrl_eof(tty_t *tty, int8_t c) 
+static void ctrl_eof(tty_t *tty, int8_t c)
 {
-    
+
 
     // 规范模式：提交缓冲区数据到主接收缓冲区，唤醒等待进程
     if (L_ECHO(tty)) {
@@ -76,7 +76,7 @@ static void ctrl_eof(tty_t *tty, int8_t c)
 }
 
 // 响铃（Ctrl+G：ASCII 7）
-static void ctrl_bell(tty_t *tty, int8_t c) 
+static void ctrl_bell(tty_t *tty, int8_t c)
 {
     PUTCH_TAIL(&tty->write, 0x07); // 输出 BEL 字符（响铃）
     tty->operation.write(tty);
@@ -85,13 +85,13 @@ static void ctrl_bell(tty_t *tty, int8_t c)
 //退格（Ctrl+H/Backspace：ASCII 8）
 static void ctrl_backspace(tty_t *tty, int8_t c) {
 
-    if (!EMPTY(&tty->read)) 
+    if (!EMPTY(&tty->read))
     {
         DELCH_TAIL(&tty->read);
     }
-    
 
-    if (L_ECHO(tty)) 
+
+    if (L_ECHO(tty))
     {
         PUTCH_TAIL(&tty->write, '\b');
         PUTCH_TAIL(&tty->write, ' ');
@@ -101,7 +101,7 @@ static void ctrl_backspace(tty_t *tty, int8_t c) {
 }
 
 // 制表符（Ctrl+I/Tab：ASCII 9）
-static void ctrl_tab(tty_t *tty, int8_t c) 
+static void ctrl_tab(tty_t *tty, int8_t c)
 {
     // 按 TTY 输出模式配置处理制表符（O_TABDLY/XTABS）
     if (O_XTABS(tty)) {
@@ -120,11 +120,10 @@ static void ctrl_tab(tty_t *tty, int8_t c)
 }
 
 // 换行/回车（Ctrl+J/M：ASCII 10/13）
-static void ctrl_newline(tty_t *tty, int8_t c) 
+static void ctrl_newline(tty_t *tty, int8_t c)
 {
     PUTCH_TAIL(&tty->read, c);
-    tty->read.data++;
-    if (L_ECHO(tty)) 
+    if (L_ECHO(tty))
     {
         PUTCH_TAIL(&tty->write, '\n');
         tty->operation.write(tty);
@@ -133,7 +132,7 @@ static void ctrl_newline(tty_t *tty, int8_t c)
 }
 
 // 清屏（Ctrl+L：ASCII 12）
-static void ctrl_clear_screen(tty_t *tty, int8_t c) 
+static void ctrl_clear_screen(tty_t *tty, int8_t c)
 {
     PUTCH_TAIL(&tty->write, '\033');
     PUTCH_TAIL(&tty->write, '[');
@@ -146,20 +145,20 @@ static void ctrl_clear_screen(tty_t *tty, int8_t c)
 }
 
 // 大小写切换（Ctrl+O/N：ASCII 14/15）
-static void ctrl_case_switch(tty_t *tty, int8_t c) 
+static void ctrl_case_switch(tty_t *tty, int8_t c)
 {
-    if (c == 0x0E) 
+    if (c == 0x0E)
     {
         tty->termios.c_iflag |= IUCLC;
-    } 
-    else if (c == 0x0F) 
+    }
+    else if (c == 0x0F)
     {
         tty->termios.c_iflag &= ~IUCLC;
     }
 }
 
 // 软件流控（Ctrl+Q/S：ASCII 17/19）
-static void ctrl_flow_ctrl(tty_t *tty, int8_t c) 
+static void ctrl_flow_ctrl(tty_t *tty, int8_t c)
 {
     if (!I_IXON(tty)) return; // 需启用 IXON 标志
 
@@ -173,14 +172,14 @@ static void ctrl_flow_ctrl(tty_t *tty, int8_t c)
 
 // 行编辑（Ctrl+U/W/_：ASCII 21/23/31）
 static void ctrl_line_edit(tty_t *tty, int8_t c) {
-    switch (c) 
+    switch (c)
     {
 
         case 0x15:
-            while (!EMPTY(&tty->read)) 
+            while (!EMPTY(&tty->read))
             {
                 DELCH_TAIL(&tty->read);
-                
+
             }
             break;
         case 0x17:
@@ -189,7 +188,7 @@ static void ctrl_line_edit(tty_t *tty, int8_t c) {
             }
             break;
         case 0x1F:
-            while (!EMPTY(&tty->read) &&LAST(&tty->read) != '\n') 
+            while (!EMPTY(&tty->read) &&LAST(&tty->read) != '\n')
             {
                 DELCH_TAIL(&tty->read);
             }
@@ -199,21 +198,21 @@ static void ctrl_line_edit(tty_t *tty, int8_t c) {
 }
 
 // 粘贴模式（Ctrl+V：ASCII 22）
-static void ctrl_paste(tty_t *tty, int8_t c) 
+static void ctrl_paste(tty_t *tty, int8_t c)
 {
 
 }
 
 // 取消操作（Ctrl+X：ASCII 24）
-static void ctrl_cancel(tty_t *tty, int8_t c) 
+static void ctrl_cancel(tty_t *tty, int8_t c)
 {
 
-    while (!EMPTY(&tty->read)) 
+    while (!EMPTY(&tty->read))
     {
         DELCH_TAIL(&tty->read);
     }
 
-    if (L_ECHO(tty)) 
+    if (L_ECHO(tty))
     {
         PUTCH_TAIL(&tty->write, '\n');
         tty->operation.write(tty);
@@ -221,20 +220,20 @@ static void ctrl_cancel(tty_t *tty, int8_t c)
 }
 
 // 撤销擦除（Ctrl+Y：ASCII 25）
-static void ctrl_undo_erase(tty_t *tty, int8_t c) 
+static void ctrl_undo_erase(tty_t *tty, int8_t c)
 {
-    
+
 }
 
 //  转义序列（Ctrl+[/Esc：ASCII 27）
-static void ctrl_escape(tty_t *tty, int8_t c) 
+static void ctrl_escape(tty_t *tty, int8_t c)
 {
     // 终端转义序列起始（如颜色控制、光标移动），需后续解析后续字符
     // 此处简化为忽略，实际驱动需实现转义序列解析器
 }
 
 // 保留字符（未使用功能：ASCII 16/18/20/29/30）
-static void ctrl_reserved(tty_t *tty, int8_t c) 
+static void ctrl_reserved(tty_t *tty, int8_t c)
 {
     // 预留扩展，当前忽略
 }
@@ -272,71 +271,71 @@ static ctrl_func_t ctrl_handlers[32] = {
     ctrl_undo_erase,    // 25: Ctrl+Y
     ctrl_signal,        // 26: Ctrl+Z
     ctrl_escape,        // 27: Ctrl+[/Esc
-    ctrl_signal,        // 28: Ctrl+\ 
+    ctrl_signal,        // 28: Ctrl+\
     ctrl_reserved,      // 29: Ctrl+]（GS，保留）
     ctrl_reserved,      // 30: Ctrl+^（RS，保留）
     ctrl_line_edit      // 31: Ctrl+_（US）
 };
 
 // 字符处理函数，根据模式调用不同的处理逻辑
-void tty_handle_char(tty_t *tty, int8_t c) 
+void tty_handle_char(tty_t *tty, int8_t c)
 {
-    
-    if (I_IUCLC(tty) && c >= 'A' && c <= 'Z') 
+
+    if (I_IUCLC(tty) && c >= 'A' && c <= 'Z')
     {
         c += 32;
     }
 
-    if (c < 32) 
+    if ((uint8_t)c < 32)
     {
-        if (!L_ICANON(tty)) 
+        if (!L_ICANON(tty))
         {
             PUTCH_TAIL(&tty->read, c);
             //wakeup(&tty->read.wait_head);
             return;
         }
         ctrl_handlers[c](tty, c);
-    } 
-    else if (c == 127) 
+    }
+    else if (c == 127)
     {
         ctrl_backspace(tty, c);
     }
-    else 
+    else
     {
-        if (I_INLCR(tty) && c == '\n') 
+        if (I_INLCR(tty) && c == '\n')
         {
             c = '\r';
-        } 
-        else if (I_ICRNL(tty) && c == '\r') 
+        }
+        else if (I_ICRNL(tty) && c == '\r')
         {
             c = '\n';
-        } 
-        else if (I_IGNCR(tty) && c == '\r') 
+        }
+        else if (I_IGNCR(tty) && c == '\r')
         {
             return;
         }
 
-        if (L_ICANON(tty)) 
+        if (L_ICANON(tty))
         {
             PUTCH_TAIL(&tty->read, c);
             if (L_ECHO(tty)) {
-                if (O_OLCUC(tty) && c >= 'a' && c <= 'z') 
+                if (O_OLCUC(tty) && c >= 'a' && c <= 'z')
                 {
                     PUTCH_TAIL(&tty->write, c - 32);
-                } 
-                else 
+                }
+                else
                 {
                     PUTCH_TAIL(&tty->write, c);
                 }
                 tty->operation.write(tty);
             }
-        } 
-        else 
+        }
+        else
         {
             PUTCH_TAIL(&tty->read, c);
-            if (L_ECHO(tty)) 
+            if (L_ECHO(tty))
             {
-                if (O_OLCUC(tty) && c >= 'a' && c <= 'z') 
+                if (O_OLCUC(tty) && c >= 'a' && c <= 'z')
                 {
                     PUTCH_TAIL(&tty->write, c - 32);
                 } else {
@@ -350,8 +349,10 @@ void tty_handle_char(tty_t *tty, int8_t c)
 }
 
 
-void tty_init()
+void tty_init(void)
 {
+    tty_queue_init(&tty.read);
+    tty_queue_init(&tty.write);
     tty.operation.write=vga_write;
     tty.termios.c_iflag=ICRNL;
     tty.termios.c_oflag=OPOST|ONLCR;

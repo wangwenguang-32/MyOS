@@ -6,11 +6,12 @@
 #include<list.h>
 #include<termios.h>
 
-#define BUF_SIZE  1024
+#define TTY_QUEUE_SIZE 1024U
+#define BUF_SIZE TTY_QUEUE_SIZE
 
 typedef struct tty tty_t;
 
-typedef struct 
+typedef struct
 {
     uint16_t head;
     uint16_t tail;
@@ -146,8 +147,16 @@ struct tty
 #define L_IEXTEN(tty)       LFLAG(tty, IEXTEN)
 
 
-extern uint32_t tty_queue_is_empty(tty_queue_t* queue);
-extern uint32_t tty_queue_is_full(tty_queue_t* queue); 
+/* Queue operations return 0 on success, 1 on full/empty/invalid input.
+ * Failed dequeue leaves the output byte unchanged. data counts newlines.
+ * Initialize only before use; resetting an active wait queue is not supported.
+ */
+void tty_queue_init(tty_queue_t *queue);
+uint32_t tty_queue_count(const tty_queue_t *queue);
+int32_t tty_queue_peek_tail(const tty_queue_t *queue, int8_t *value);
+int8_t tty_queue_last(const tty_queue_t *queue);
+extern uint32_t tty_queue_is_empty(const tty_queue_t* queue);
+extern uint32_t tty_queue_is_full(const tty_queue_t* queue);
 extern int32_t enqueue_tail(tty_queue_t*queue,int8_t c);
 extern int32_t dequeue_tail(tty_queue_t*queue,int8_t*c);
 extern int32_t enqueue_head(tty_queue_t*queue,int8_t c);
@@ -168,9 +177,11 @@ extern int32_t dequeue_head(tty_queue_t*queue,int8_t*c);
         dequeue_tail(queue,&tmp);\
 }while(0)
 
-#define LAST(queue)  (queue)->buf[((queue)->tail-1+BUF_SIZE)%BUF_SIZE]
+#define LAST(queue) tty_queue_last(queue)
 
 
+void tty_init(void);
+void tty_handle_char(tty_t *terminal, int8_t c);
 extern tty_t tty;
 
 

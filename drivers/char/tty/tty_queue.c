@@ -1,108 +1,122 @@
-#include <stdint.h>
-#include <stddef.h>  // 用于NULL判断
+#include <tty.h>
+#include <mm_lock.h>
 
-// 定义队列缓冲区大小（可根据需求调整）
-#ifndef BUF_SIZE
-#define BUF_SIZE 128
-#endif
-
-// 双向循环队列结构体定义（明确成员类型，增强可读性）
-typedef struct tty_queue {
-    int8_t buf[BUF_SIZE];    // 存储数据的缓冲区
-    uint32_t head;           // 队头指针（指向队头元素）
-    uint32_t tail;           // 队尾指针（指向队尾下一个位置）
-} tty_queue_t;
-
-/**
- * @brief 判断队列是否为空
- * @param queue 队列指针（需非空）
- * @return 1-空，0-非空
+/* head is the first byte; tail is the next insertion slot.
+ * One slot stays unused: capacity is TTY_QUEUE_SIZE - 1.
+ * data counts queued newline bytes, not the number of bytes.
+ * IRQ exclusion supports this kernel's single-CPU interrupt producer model.
  */
-uint32_t tty_queue_is_empty(const tty_queue_t* queue) {
-    if (queue == NULL) return 1;  // 空指针视为空队列
-    return (queue->head == queue->tail);
+#define NEXT(index) (((index) + 1U) % TTY_QUEUE_SIZE)
+#define PREVIOUS(index) (((index) + TTY_QUEUE_SIZE - 1U) % TTY_QUEUE_SIZE)
+
+typedef char queue_index_capacity_check[(TTY_QUEUE_SIZE > 1 && TTY_QUEUE_SIZE <= 65536U) ? 1 : -1];
+
+void tty_queue_init(tty_queue_t *queue)
+{
+    uint32_t flags;
+    if (!queue) return;
+    flags = mm_irq_save();
+    queue->head = queue->tail = 0;
+    queue->data = 0;
+    INIT_LIST_HEAD(&queue->wait_head);
+    mm_irq_restore(flags);
 }
 
-/**
- * @brief 判断队列是否为满
- * @param queue 队列指针（需非空）
- * @return 1-满，0-非满
- */
-uint32_t tty_queue_is_full(const tty_queue_t* queue) {
-    if (queue == NULL) return 1;  // 空指针视为满队列（避免越界）
-    return ((queue->tail + 1) % BUF_SIZE) == queue->head;
+uint32_t tty_queue_is_empty(const tty_queue_t *queue)
+{
+    uint32_t flags = mm_irq_save();
+    uint32_t result = !queue || queue->head == queue->tail;
+    mm_irq_restore(flags);
+    return result;
 }
 
-/**
- * @brief 队尾入队（兼容原enqueue函数）
- * @param queue 队列指针
- * @param c 要入队的字符
- * @return 0-成功，1-失败（队列满或参数错误）
- */
-int32_t enqueue_tail(tty_queue_t* queue, int8_t c) {
-    if (queue == NULL) return 1;  // 参数校验
+uint32_t tty_queue_is_full(const tty_queue_t *queue)
+{
+    uint32_t flags = mm_irq_save();
+    uint32_t result = !queue || NEXT(queue->tail) == queue->head;
+    mm_irq_restore(flags);
+    return result;
+}
 
-    if (!tty_queue_is_full(queue)) {
-        queue->buf[queue->tail] = c;
-        queue->tail = (queue->tail + 1) % BUF_SIZE;
-        return 0;
+uint32_t tty_queue_count(const tty_queue_t *queue)
+{
+    uint32_t flags = mm_irq_save();
+    uint32_t result = queue ? (queue->tail + TTY_QUEUE_SIZE - queue->head) % TTY_QUEUE_SIZE : 0;
+    mm_irq_restore(flags);
+    return result;
+}
+
+int32_t tty_queue_peek_tail(const tty_queue_t *queue, int8_t *value)
+{
+    uint32_t flags = mm_irq_save();
+    if (!queue || !value || queue->head == queue->tail) {
+        mm_irq_restore(flags);
+        return 1;
     }
-    return 1;
+    *value = queue->buf[PREVIOUS(queue->tail)];
+    mm_irq_restore(flags);
+    return 0;
 }
 
-/**
- * @brief 队头入队
- * @param queue 队列指针
- * @param c 要入队的字符
- * @return 0-成功，1-失败（队列满或参数错误）
- */
-int32_t enqueue_head(tty_queue_t* queue, int8_t c) {
-    if (queue == NULL) return 1;  // 参数校验
+int8_t tty_queue_last(const tty_queue_t *queue)
+{
+    int8_t value = 0;
+    (void)tty_queue_peek_tail(queue, &value);
+    return value;
+}
 
-    if (!tty_queue_is_full(queue)) {
-        // 队头指针向前移动（循环处理）
-        queue->head = (queue->head - 1 + BUF_SIZE) % BUF_SIZE;
-        queue->buf[queue->head] = c;
-        return 0;
+int32_t enqueue_tail(tty_queue_t *queue, int8_t value)
+{
+    uint32_t flags = mm_irq_save();
+    if (!queue || NEXT(queue->tail) == queue->head) {
+        mm_irq_restore(flags);
+        return 1;
     }
-    return 1;
+    queue->buf[queue->tail] = value;
+    queue->tail = NEXT(queue->tail);
+    if (value == '\n') queue->data++;
+    mm_irq_restore(flags);
+    return 0;
 }
 
-/**
- * @brief 队头出队（兼容原dequeue函数）
- * @param queue 队列指针
- * @param c 存储出队字符的指针
- * @return 0-成功，1-失败（队列空或参数错误）
- */
-int32_t dequeue_head(tty_queue_t* queue, int8_t* c) {
-    if (queue == NULL || c == NULL) return 1;  // 参数校验
-
-    if (!tty_queue_is_empty(queue)) {
-        *c = queue->buf[queue->head];
-        queue->head = (queue->head + 1) % BUF_SIZE;
-        return 0;
+int32_t enqueue_head(tty_queue_t *queue, int8_t value)
+{
+    uint32_t flags = mm_irq_save();
+    if (!queue || NEXT(queue->tail) == queue->head) {
+        mm_irq_restore(flags);
+        return 1;
     }
-    return 1;
+    queue->head = PREVIOUS(queue->head);
+    queue->buf[queue->head] = value;
+    if (value == '\n') queue->data++;
+    mm_irq_restore(flags);
+    return 0;
 }
 
-/**
- * @brief 队尾出队
- * @param queue 队列指针
- * @param c 存储出队字符的指针
- * @return 0-成功，1-失败（队列空或参数错误）
- */
-int32_t dequeue_tail(tty_queue_t* queue, int8_t* c) {
-    if (queue == NULL || c == NULL) return 1;
-
-    if (!tty_queue_is_empty(queue)) {
-        // 队尾指针向前移动（循环处理）
-        queue->tail = (queue->tail - 1 + BUF_SIZE) % BUF_SIZE;
-        *c = queue->buf[queue->tail];
-        return 0;
+int32_t dequeue_head(tty_queue_t *queue, int8_t *value)
+{
+    uint32_t flags = mm_irq_save();
+    if (!queue || !value || queue->head == queue->tail) {
+        mm_irq_restore(flags);
+        return 1;
     }
-    return 1;
+    *value = queue->buf[queue->head];
+    queue->head = NEXT(queue->head);
+    if (*value == '\n' && queue->data) queue->data--;
+    mm_irq_restore(flags);
+    return 0;
 }
 
-// 兼容原函数的宏定义（无需修改旧代码）
-#define enqueue queue, c enqueue_tail(queue, c)
-#define dequeue queue, c dequeue_head(queue, c)
+int32_t dequeue_tail(tty_queue_t *queue, int8_t *value)
+{
+    uint32_t flags = mm_irq_save();
+    if (!queue || !value || queue->head == queue->tail) {
+        mm_irq_restore(flags);
+        return 1;
+    }
+    queue->tail = PREVIOUS(queue->tail);
+    *value = queue->buf[queue->tail];
+    if (*value == '\n' && queue->data) queue->data--;
+    mm_irq_restore(flags);
+    return 0;
+}

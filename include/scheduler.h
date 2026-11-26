@@ -1,5 +1,6 @@
 #ifndef MYOS_SCHEDULER_H
 #define MYOS_SCHEDULER_H
+#include <process.h>
 
 #define save_com_regs()    \
 __asm__ __volatile__(  \
@@ -30,7 +31,8 @@ __asm__ __volatile__( \
 
 
 
-void schedule();
+void schedule(void);
+void swtch(task_context_t **old_context, task_context_t **new_context);
 
 
 #endif

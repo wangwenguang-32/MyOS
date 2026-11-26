@@ -97,17 +97,7 @@ uint32_t lapic_timer_calibrate_frequency(uint32_t divisor) {
 void timer_interrupt_handler(void)
 {
     lapic_eoi();
-    if ( current->time_slice > 0) 
-    {
-        current->time_slice--;
-        return;
-    }
-
-    if(list_empty(&ready_task_head))
-    {
-        current->time_slice=PROCESS_TIME_SLICE;
-        return;
-    }
-    schedule();
-    return 0;
+    if (!current || current->state != TASK_RUNNING) return;
+    if (current->time_slice) current->time_slice--;
+    if (!current->time_slice) schedule();
 }

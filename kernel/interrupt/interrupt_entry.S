@@ -17,7 +17,11 @@ no_error_code:
         push %ds
         push %es
         push %fs
-        call %eax
+        cld
+        movw $0x10, %dx
+        movw %dx, %ds
+        movw %dx, %es
+        call *%eax
         pop %fs
         pop %es
         pop %ds
@@ -43,7 +47,11 @@ error_code:
         push %es
         push %fs
         pushl %eax
-        call %ebx
+        cld
+        movw $0x10, %dx
+        movw %dx, %ds
+        movw %dx, %es
+        call *%ebx
         addl $4,%esp
         pop %fs
         pop %es

@@ -1,6 +1,5 @@
 .global system_call , sys_fork
-system_call:
-        
+system_call: 
         push  %ds
         push  %es
         push  %fs
@@ -26,6 +25,9 @@ system_call:
         movl $-38, %eax
 .Lsyscall_result:
         movl %eax, (%esp)
+
+.global fork_return
+fork_return:
         popl %eax
         popl %ebx
         popl %ecx
@@ -40,5 +42,8 @@ system_call:
 
 
 sys_fork:
+        leal 4(%esp), %eax
+        pushl %eax
         call do_fork
+        addl $4, %esp
         ret

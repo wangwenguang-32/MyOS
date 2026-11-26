@@ -22,7 +22,7 @@ void main(unsigned long *esp)
     // blk_init();
     // mbr_init();
     // tty_init();
-    // while(1);
+    while(1);
     init_task();
     lapic_timer_init_periodic(0x20, 0x10000,128);
     move_to_user_mode();

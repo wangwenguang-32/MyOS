@@ -39,8 +39,11 @@ static uint32_t copy_page_directory_table(void)
     return (uint32_t)v_pgd;
 }
 
-int do_fork(void)
+extern void fork_return(void);
+
+int do_fork(const uint32_t *frame)
 {
+    if (!current || !frame || (frame[11] & 3U) != 3U) return -1;
     task_t*new_task=(task_t*)copy_content();
     if (!new_task) return -1;
     page_directory_t*pgd= (page_directory_t*)copy_page_directory_table();
@@ -66,10 +69,23 @@ int do_fork(void)
     new_task->time_slice=PROCESS_TIME_SLICE;
     new_task->mm->pgd=pgd;
 
-    ((uint32_t*)new_task)[1018]=0;
+    /* Ten saved register slots followed by the five-word user iret frame. */
+    uint32_t *child_frame = (uint32_t *)((uint32_t)new_task + PAGE_SIZE) - 15;
+    for (uint32_t i = 0; i < 15; i++) child_frame[i] = frame[i];
+    child_frame[0] = 0; /* fork returns zero in the child. */
+    task_context_t *context = (task_context_t *)child_frame - 1;
+    *context = (task_context_t){0};
+    context->eip = (uint32_t)fork_return;
+    new_task->context = context;
+    INIT_LIST_HEAD(&new_task->ready_node);
+    INIT_LIST_HEAD(&new_task->all_tasks_node);
 
     INIT_LIST_HEAD(&new_task->mm->vm_area_list);
-    mm_copy(new_task->mm,current->mm);
+    if (mm_copy(new_task->mm,current->mm)) {
+        pid_free(new_task->pid);
+        free_page((uint32_t)new_task - PAGE_OFFSET);
+        return -1; /* mm_copy performs address-space cleanup on failure. */
+    }
 
 
     list_add_tail(&new_task->all_tasks_node,&all_task_head);

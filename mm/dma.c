@@ -2,16 +2,17 @@
 #include <physical_memory.h>
 #include <kernel.h>
 #include <mm_lock.h>
+#include <direct_map.h>
 
 #define DMA_RECORD_COUNT 128U
 static struct { void *pointer; uint32_t physical, pages; } allocations[DMA_RECORD_COUNT];
 
 int dma_map_buffer(const void *pointer, uint32_t size, uint32_t mask, dma_addr_t *handle)
 {
-    uint32_t address = (uint32_t)pointer, physical;
-    if (!handle || !size || address < DIRECT_MAP_START || address > DIRECT_MAP_END ||
-        size > DIRECT_MAP_END - address + 1) return -1;
-    physical = address - KERNEL_VIRT_BASE;
+    uint32_t physical;
+    if (!handle || !direct_map_is_ready() ||
+        direct_map_physical(pointer, &physical) ||
+        !direct_map_contains_physical(physical, size)) return -1;
     if ((uint64_t)physical + size - 1 > mask) return -1;
     __asm__ volatile("" ::: "memory");
     *handle = physical;

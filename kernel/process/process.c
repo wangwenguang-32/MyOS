@@ -9,6 +9,10 @@
 #include <heap.h>
 
 task_t *current;
+static void task_init_failed(void)
+{
+    for (;;) __asm__ volatile("cli; hlt");
+}
 
 LIST_HEAD(ready_task_head);
 LIST_HEAD(all_task_head);
@@ -25,10 +29,12 @@ task_t* init_task0  DATA;
  void init_mm_struct_t()
  {
     mm_struct_t*mm=init_task0->mm;
+    if (!mm) task_init_failed();
     INIT_LIST_HEAD(&mm->vm_area_list);
 
     mm->pgd=_pdt;
     vm_area_t*code_area=alloc_vma();
+    if (!code_area) task_init_failed();
     code_area->vm_start=TASK0_VIRT_START;
     code_area->vm_end=TASK0_VIRT_START+PAGE_SIZE;
     code_area->vm_type=VMA_TYPE_CODE;
@@ -36,6 +42,7 @@ task_t* init_task0  DATA;
     insert_vma(mm,code_area);
 
     vm_area_t*stack_area=alloc_vma();
+    if (!stack_area) task_init_failed();
     stack_area->vm_start=USER_STACK_START-PAGE_SIZE;
     stack_area->vm_end=USER_STACK_START;
     stack_area->vm_type=VMA_TYPE_STACK;
@@ -51,7 +58,7 @@ void init_task_t()
     init_task0->pid=0;
     init_task0->ppid= -1;
     init_task0->state= TASK_RUNNING;
-    init_task0->mm=(mm_struct_t*)kmalloc(sizeof(mm_struct_t));
+    init_task0->mm=(mm_struct_t*)kzalloc(sizeof(mm_struct_t));
     init_task0->on_cpu=0;
     init_task0->policy = SCHED_NORMAL;
     init_task0->time_slice = PROCESS_TIME_SLICE;
@@ -63,10 +70,14 @@ void init_task()
 {
     uint32_t addr =(uint32_t)alloc_page()+PAGE_OFFSET;
     uint32_t stack_addr=(uint32_t)alloc_page();
+    if (addr == PAGE_OFFSET || !stack_addr) task_init_failed();
     tss_globel.esp0=addr+PAGE_SIZE;
     tss_globel.ss0=SEG_KERNEL_DATA;
 
     init_task0=(task_t*)addr;
+    for (uint32_t i = 0; i < sizeof(task_t); i++) ((uint8_t *)init_task0)[i] = 0;
+    INIT_LIST_HEAD(&init_task0->ready_node);
+    INIT_LIST_HEAD(&init_task0->all_tasks_node);
     init_task_t();
     current=init_task0;
 

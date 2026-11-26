@@ -34,11 +34,22 @@ static inline const char* addr_range_type_str(unsigned type) {
 #define PAGE_ALIGN_DOWN(addr) ((addr) & ~0xFFFU)
 #define PAGE_ALIGN_UP(addr)   (((addr) + 0xFFFU) & ~0xFFFU)
 
-uint32_t alloc_page();
+uint32_t alloc_page(void);
 void free_page(uint32_t addr);
 
 uint32_t alloc_pages(uint32_t count);
 void free_pages(uint32_t start_addr, uint32_t count);
+
+typedef struct {
+    uint32_t managed_pages; /* Currently accessible allocatable RAM, excludes reservations. */
+    uint32_t allocated_pages;
+    uint32_t free_pages;
+    uint32_t allocation_failures;
+    uint32_t invalid_frees;
+} physical_memory_stats_t;
+/* Invalid ranges are rejected atomically. Live allocation subranges are allowed. */
+int free_pages_checked(uint32_t start_addr, uint32_t count);
+void physical_memory_get_stats(physical_memory_stats_t *stats);
 
 struct multiboot_tag_mmap;
 void reserve_boot_memory(uint32_t start, uint32_t end);
