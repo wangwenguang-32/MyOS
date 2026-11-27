@@ -53,6 +53,7 @@ void main(uint32_t magic, uint32_t boot_info_physical)
     if (init_task()) boot_failure("idle/init task creation");
     printf("[task] idle pid=0, init pid=1 created.\n");
     lapic_timer_init_periodic(0x20, 0x10000, 128);
+    printf("[task] timer configured; first schedule.\n");
     schedule();
     boot_failure("unexpected return to boot context");
 }

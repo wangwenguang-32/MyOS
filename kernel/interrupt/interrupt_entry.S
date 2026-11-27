@@ -46,13 +46,15 @@ error_code:
         push %ds
         push %es
         push %fs
+        leal 40(%esp), %edx
+        pushl %edx
         pushl %eax
         cld
         movw $0x10, %dx
         movw %dx, %ds
         movw %dx, %es
         call *%ebx
-        addl $4,%esp
+        addl $8,%esp
         pop %fs
         pop %es
         pop %ds

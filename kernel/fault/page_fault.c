@@ -77,15 +77,27 @@ void handle_user_write_prot_fault(unsigned long fault_addr)
 }
 
 
-void do_page_fault(uint32_t error_code)
+/* frame points to CPU-saved EIP, CS, EFLAGS (and user ESP/SS at CPL3). */
+void do_page_fault(uint32_t error_code, const uint32_t *frame)
 {
-    printf("page fault\n");
-    while(1);
-    uint32_t addr=0;
-    __asm__("movl %%cr2,%%eax;":"=a"(addr) :);
-    //printf("error code:0x%x   fault virt addr:0x%x\n",error_code,addr);
-    if(error_code==(PF_ERR_USER | PF_ERR_WRITE | PF_ERR_PRESENT))
-    {
-        handle_user_write_prot_fault(addr);
+    uint32_t address, cr3, pde = 0, pte = 0;
+    __asm__ volatile("movl %%cr2, %0" : "=r"(address));
+    __asm__ volatile("movl %%cr3, %0" : "=r"(cr3));
+    __asm__ volatile("cli" ::: "memory");
+    printf("\n[PAGE FAULT] CR2=0x%x error=0x%x CR3=0x%x\n", address, error_code, cr3);
+    printf("EIP=0x%x CS=0x%x EFLAGS=0x%x pid=%d\n",
+           frame[0], frame[1], frame[2], current ? current->pid : -1);
+    printf("present=%u write=%u user=%u reserved=%u fetch=%u\n",
+           error_code & 1, (error_code >> 1) & 1, (error_code >> 2) & 1,
+           (error_code >> 3) & 1, (error_code >> 4) & 1);
+    if ((cr3 & ~4095U) < DIRECT_MAP_SIZE) {
+        page_directory_t *directory = (void *)((cr3 & ~4095U) + PAGE_OFFSET);
+        pde = directory->entries[address >> 22];
+        if ((pde & PAGE_PRESENT) && !(pde & 0x80U) && (pde & ~4095U) < DIRECT_MAP_SIZE) {
+            page_table_t *table = (void *)((pde & ~4095U) + PAGE_OFFSET);
+            pte = table->entries[(address >> 12) & 1023U];
+        }
     }
+    printf("PDE=0x%x PTE=0x%x\n", pde, pte);
+    for (;;) __asm__ volatile("hlt");
 }
