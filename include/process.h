@@ -24,7 +24,8 @@ typedef enum {
 	TASK_READY,
 	TASK_RUNNING,
 	TASK_INTERRUPTIBLE,
-	TASK_UNINTERRUPTIBLE
+	TASK_UNINTERRUPTIBLE,
+    TASK_ZOMBIE
 } task_state_t;
 
 /* 调度策略 */
@@ -114,6 +115,8 @@ typedef struct{
 }task_context_t;
 
 
+typedef void (*task_entry_t)(void *argument);
+
 typedef struct task_struct {
 	/* 标识 */
 	int32_t        pid;
@@ -149,6 +152,8 @@ typedef struct task_struct {
 	// kernel_stack_t  ks;               /* 进出调度器保存/恢复 */
 
 	task_context_t* context;
+    task_entry_t entry;
+    void *entry_argument;
 
 	/* 地址空间/内存管理 */
 	struct mm_struct *mm;             /* 进程地址空间（线程共享） */
@@ -176,6 +181,11 @@ extern task_t *init_task0;
 extern task_t *init_process;
 int init_task(void);
 int task_wake(task_t *task);
+/* Create a suspended TASK_NEW kernel task; start only after caller setup. */
+task_t *create_kernel_task(const char *name, task_entry_t entry, void *argument);
+int task_start(task_t *task);
+/* Only an unstarted, kernel-address-space task may be discarded. */
+int task_discard(task_t *task);
 
 extern struct  list_head ready_task_head;
 extern struct  list_head all_task_head;

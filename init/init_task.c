@@ -44,8 +44,9 @@ failed:
     return -1;
 }
 
-void init_main(void)
+void init_main(void *argument)
 {
+    (void)argument;
     printf("[task] Entering user init, pid=%d\n", current->pid);
     enter_user_init();
     for (;;) __asm__ volatile("cli; hlt");
