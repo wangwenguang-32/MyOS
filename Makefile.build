@@ -28,6 +28,14 @@ ifneq ($(dep_files),)
 endif
 
 
+# Old objects without dependency files must be rebuilt once to learn headers.
+missing_dep_objs := $(foreach o,$(cur_objs),$(if $(wildcard .$(o).d),,$(o)))
+ifneq ($(strip $(missing_dep_objs)),)
+$(missing_dep_objs): FORCE_DEPENDENCIES
+endif
+PHONY += FORCE_DEPENDENCIES
+FORCE_DEPENDENCIES:
+
 PHONY += $(subdir-y)
 
 
@@ -41,10 +49,10 @@ built-in.o : $(cur_objs) $(subdir_objs)
 
 
 %.o : %.S
-	$(CC) $(CFLAGS) $(EXTRA_CFLAGS) $(CFLAGS_$@)  -c -o $@ $<
+	$(CC) $(CFLAGS) $(EXTRA_CFLAGS) $(CFLAGS_$@) -MMD -MP -MF .$@.d -MT $@ -c -o $@ $<
 
 %.o : %.c
-	$(CC) $(CFLAGS) $(EXTRA_CFLAGS) $(CFLAGS_$@)  -c -o $@ $<
+	$(CC) $(CFLAGS) $(EXTRA_CFLAGS) $(CFLAGS_$@) -MMD -MP -MF .$@.d -MT $@ -c -o $@ $<
 
 
 	

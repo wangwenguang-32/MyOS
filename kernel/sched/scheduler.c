@@ -3,6 +3,7 @@
 #include <kernel.h>
 #include <gdt.h>
 #include <mm_lock.h>
+#include <printf.h>
 extern struct tss_struct tss_globel;
 
 /* UP round-robin scheduler with a dedicated idle fallback. */
@@ -38,6 +39,19 @@ void schedule(void)
     next->on_cpu = 0; /* CPU number, not a boolean. */
     tss_globel.esp0 = (uint32_t)next + PAGE_SIZE;
     tss_globel.ss0 = SEG_KERNEL_DATA;
+    if (!prev->mm || !prev->mm->pgd) {
+        printf("[sched] invalid previous address space\n");
+        for (;;) __asm__ volatile("cli; hlt");
+    }
+    if (prev->state == TASK_UNUSED) {
+        uint32_t stack, base;
+        __asm__ volatile("movl %%esp, %0" : "=r"(stack));
+        __asm__ volatile("movl %%ebp, %0" : "=r"(base));
+        printf("[sched] prev=0x%x next=0x%x pgd=0x%x context=0x%x entry=0x%x\n",
+               (uint32_t)prev, (uint32_t)next, (uint32_t)next->mm->pgd,
+               (uint32_t)next->context, next->context->eip);
+        printf("[sched] ESP=0x%x EBP=0x%x\n", stack, base);
+    }
     if (prev->mm->pgd != next->mm->pgd) {
         uint32_t physical = (uint32_t)next->mm->pgd - PAGE_OFFSET;
         __asm__ volatile("movl %0, %%cr3" :: "r"(physical) : "memory");
