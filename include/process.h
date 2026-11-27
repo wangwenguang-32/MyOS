@@ -172,6 +172,10 @@ typedef struct task_struct {
 
 
 extern task_t* current;
+extern task_t *init_task0;
+extern task_t *init_process;
+int init_task(void);
+int task_wake(task_t *task);
 
 extern struct  list_head ready_task_head;
 extern struct  list_head all_task_head;

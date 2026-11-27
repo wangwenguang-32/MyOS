@@ -10,6 +10,8 @@
 #include <boot_info.h>
 #include <physical_memory.h>
 #include <kernel.h>
+#include <process.h>
+#include <scheduler.h>
 
 
 
@@ -48,8 +50,9 @@ void main(uint32_t magic, uint32_t boot_info_physical)
     tty_init();
     apic_init(0xFF, 0x20);
     keyboard_init();
-    printf("Kernel initialized; waiting for interrupts.\n");
-    /* Temporary boot idle loop. No task exists yet; do not start scheduling
-     * until task0 has a dedicated idle stack and a valid initial context. */
-    for (;;) __asm__ volatile("sti; hlt" ::: "memory");
+    if (init_task()) boot_failure("idle/init task creation");
+    printf("[task] idle pid=0, init pid=1 created.\n");
+    lapic_timer_init_periodic(0x20, 0x10000, 128);
+    schedule();
+    boot_failure("unexpected return to boot context");
 }

@@ -47,3 +47,10 @@ sys_fork:
         call do_fork
         addl $4, %esp
         ret
+
+.global sys_putchar_entry
+sys_putchar_entry:
+    pushl %ebx
+    call sys_putchar_value
+    addl $4, %esp
+    ret

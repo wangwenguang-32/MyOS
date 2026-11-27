@@ -24,7 +24,7 @@ SECTIONS {
     .text BLOCK(4K) : AT(ADDR(.text) - 0xC0000000) {  
         *(.text)
     }
-    .rodata : { *(.rodata) }
+    .rodata : { *(.rodata .rodata.*) }
     .data : { *(.data) }
     .bss : { _bss_start = .; *(.bss .bss.*) *(COMMON) _bss_end = .; }
     . = ALIGN(4096);
